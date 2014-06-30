@@ -1,0 +1,10 @@
+#payplug_admin {
+    margin: auto;
+    max-width: 960px;
+    border: solid 1px #bebebe;
+    padding: 10px;
+    color: #666666;
+}
+.updateButton{
+    padding: 5px;
+}
