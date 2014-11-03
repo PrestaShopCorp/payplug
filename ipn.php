@@ -177,6 +177,7 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 				}
 			}
 		}
+		Configuration::updateValue('PAYPLUG_CONFIGURATION_OK', true);
 	}
 	else
 	{
