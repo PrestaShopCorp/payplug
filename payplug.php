@@ -48,7 +48,7 @@ class Payplug extends PaymentModule
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
-		$this->version = '0.9.4';
+		$this->version = '0.9.5';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
 		parent::__construct();
@@ -165,7 +165,9 @@ class Payplug extends PaymentModule
 				$process = curl_init(Payplug::URL_AUTOCONFIG);
 				curl_setopt($process, CURLOPT_USERPWD, Tools::getValue('email').':'.Tools::getValue('password'));
 				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($process, CURLOPT_SSLVERSION, 3);
+				curl_setopt($process, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+				curl_setopt($process, CURLOPT_SSL_VERIFYPEER, true);
+				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, true);
 				curl_setopt($process, CURLOPT_CAINFO, realpath(dirname(__FILE__).'/cacert.pem')); //work only wiht cURL 7.10+
 				$answer = curl_exec($process);
 
