@@ -2,7 +2,7 @@
 <module>
 	<name>payplug</name>
 	<displayName><![CDATA[PayPlug]]></displayName>
-	<version><![CDATA[0.9.5]]></version>
+	<version><![CDATA[0.9.6]]></version>
 	<description><![CDATA[Payer par carte simplement, rapidement et de mani&egrave;re s&eacute;curis&eacute;e.]]></description>
 	<author><![CDATA[PayPlug]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>
