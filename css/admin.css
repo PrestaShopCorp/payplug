@@ -5,7 +5,7 @@
     padding: 20px;
     color: #666666;
 }
-#debugSettings, #liveSettings
+#sandboxSettings, #liveSettings
 {
 	display: none;
 	margin-top: 15px

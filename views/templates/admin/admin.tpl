@@ -63,11 +63,11 @@
 	<h3>{l s='Step 2 : Set up the module' mod='payplug'}</h3>
 	<p>{l s='To activate payments on your website, you must set up the module with the login information you created when you signed up to PayPlug.' mod='payplug'}</p>
 
-	{if !isset($debugMode) || $debugMode == ''}
+	{if !isset($sandboxMode) || $sandboxMode == ''}
 		<div class="notif alert information">
 			{l s='The module is not yet set up: you are not accepting any payments.' mod='payplug'}
 		</div>
-	{else if $debugMode == true}
+	{else if $sandboxMode == true}
 		<div class="notif alert alert-warning warn">
 			{l s='The module is correctly set up in TEST mode.' mod='payplug'}
 			<span class="underline">{l s='Note that payments you collect are not real.' mod='payplug'}</span>
@@ -91,15 +91,15 @@
 		{l s='In order to fully test the solution on your website without processing actual payments, you can use the TEST mode. Note that to come out of the TEST mode and accept real payments, you will need to return to this page and set up the module in LIVE mode.' mod='payplug'}
 	</p>
 
-	<a href="#" class="button btn btn-default debugSettings">
-		{if isset($debugMode) && $debugMode == true}
+	<a href="#" class="button btn btn-default sandboxSettings">
+		{if isset($sandboxMode) && $sandboxMode == true}
 			{l s='Re-set up in TEST mode' mod='payplug'}
 		{else}
 			{l s='Set up in TEST mode' mod='payplug'}
 		{/if}
 	</a>
 
-	<form class="form-horizontal" id="debugSettings" method="POST" action="{$this_link|escape:'htmlall'}">
+	<form class="form-horizontal" id="sandboxSettings" method="POST" action="{$this_link|escape:'htmlall'}">
 		<p>
 			{l s='Not yet signed up? Enter an email and password on' mod='payplug'}
 			<a target="_blank" href="http://www.payplug.fr/inscription">www.payplug.fr/inscription</a>
@@ -119,7 +119,7 @@
 		</div>
 		<div class="form-group">
 			<div class="margin-form col-lg-9 col-lg-offset-3">
-				<button name="debugButton" class="button btn btn-default">
+				<button name="sandboxButton" class="button btn btn-default">
 					{l s='SET UP' mod='payplug'}
 				</button>
 			</div>
@@ -132,7 +132,7 @@
 	</p>
 
 	<a href="#" class="button btn btn-default liveSettings">
-		{if isset($debugMode) && $debugMode != 1}
+		{if isset($sandboxMode) && $sandboxMode != 1}
 			{l s='Re-set up in LIVE mode' mod='payplug'}
 		{else}
 			{l s='Set up in LIVE mode' mod='payplug'}
@@ -166,19 +166,19 @@
 
 
 	<p>
-		{if !isset($errorMode) || $errorMode == false}
+		{if !isset($debugMode) || $debugMode == false}
 			{l s='Debug mode not activated.' mod='payplug'}
 		{else}
 			{l s='Debug mode activated.' mod='payplug'}
 		{/if}
-		<a href="{$this_link}&error_mode">{if !isset($errorMode) || $errorMode == false}{l s='Activate' mod='payplug'}{else}{l s='Desactivate' mod='payplug'}{/if}</a>
+		<a href="{$this_link}&debug_mode">{if !isset($debugMode) || $debugMode == false}{l s='Activate' mod='payplug'}{else}{l s='Desactivate' mod='payplug'}{/if}</a>
 	</p>
 	{literal}
 		<script type="text/javascript">
 			$(function(){
 
-				$('.debugSettings').click(function(){
-					$('#debugSettings').slideToggle('slow');
+				$('.sandboxSettings').click(function(){
+					$('#sandboxSettings').slideToggle('slow');
 					return false;
 				});
 

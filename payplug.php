@@ -37,12 +37,14 @@ class Payplug extends PaymentModule
 	const PAYMENT_STATUS_REFUND = 4;
 	const PAYMENT_STATUS_CANCEL = 2;
 	const URL_AUTOCONFIG        = 'https://www.payplug.fr/portal/ecommerce/autoconfig';
+	// Url to sandbox
 	const URL_TEST_AUTOCONFIG   = 'https://www.payplug.fr/portal/test/ecommerce/autoconfig';
 
 	public function __construct()
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
+		// Update version
 		$this->version = '0.9.7';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
@@ -53,11 +55,13 @@ class Payplug extends PaymentModule
 		if (version_compare(_PS_VERSION_, '1.4', '>'))
 			require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');
 
+		// Add warning if prestashop is an older version than 1.4
 		if (version_compare(_PS_VERSION_, '1.4', '<'))
 			$this->warning = $this->l('Sorry Payplug is not compatible with Prestashop for versions < 1.4. Please delete the payplug directory in the Prestashop modules directory for your Prestashop system to get back to normal.');
 
 		$this->currencies = true;
 		$this->currencies_mode = 'checkbox';
+		// Change descriptionn and display name
 		$this->displayName = $this->l('PayPlug – Simple and secure online payments');
 		$this->description = $this->l('The simplest online payment solution: no setup fees, no fixed fees, and no merchant account required!');
 		$this->confirmUninstall = $this->l('Are you sure you wish to uninstall this module and delete your settings?');
@@ -103,7 +107,7 @@ class Payplug extends PaymentModule
 					Payplug::updateConfiguration('PAYPLUG_ORDER_STATE_PAID', (int)$os_payment);
 				}
 			}
-
+			// Add test status && add hook
 			if ($version === false || version_compare($version, '0.9.7', '<'))
 			{
 				$install = new InstallPayplug();
@@ -171,6 +175,7 @@ class Payplug extends PaymentModule
 		if (version_compare(_PS_VERSION_, '1.4', '<') || !parent::install() || !$this->registerHook('payment') || !$this->registerHook('paymentReturn'))
 			return false;
 
+		// add hook for 1.6
 		if (version_compare(_PS_VERSION_, '1.5', '<'))
 		{
 			if (!$this->registerHook('header'))
@@ -225,10 +230,11 @@ class Payplug extends PaymentModule
 
 	public function getContent()
 	{
+		// if ps version is not available
 		if (version_compare(_PS_VERSION_, '1.4', '<'))
 			return;
 
-		// Ling
+		// Link base
 		if (version_compare(_PS_VERSION_, '1.5', '>'))
 			$this->_link = 'index.php?controller='.Tools::getValue('controller');
 		else
@@ -237,12 +243,13 @@ class Payplug extends PaymentModule
 		$this->_link .= '&configure='.$this->name.'&token='.Tools::getValue('token').'&tab_module='.$this->tab.'&module_name='.$this->name;
 
 		$display_form = true;
+		// For 1.6
 		$this->bootstrap = true;
-
+		// Check extensions
 		$curl_exists = extension_loaded('curl');
 		$openssl_exists = extension_loaded('openssl');
 		$errors = array();
-
+		// Add msg if extension not exists
 		if (!$curl_exists || !$openssl_exists)
 		{
 
@@ -255,19 +262,22 @@ class Payplug extends PaymentModule
 				$errors[] = sprintf($this->l('Connection error: %s library is missing. Please ask your hosting provider to install the %s library on your server, and try configuring the PayPlug module on Prestashop again.'), 'OpenSSL', 'OpenSSL');
 		}
 
+		// Check if form was sent
 		if (Tools::getValue('payplug_email') && Tools::getValue('payplug_password'))
 		{
 			$this->assignForVersion('email', Tools::getValue('payplug_email'));
+			// if extensions exist
 			if ($curl_exists && $openssl_exists)
 			{
 
-				$debug_button = Tools::isSubmit('debugButton');
+				$sandbox_button = Tools::isSubmit('sandboxButton');
 				// Get url to curl
-				$url = $debug_button ? Payplug::URL_TEST_AUTOCONFIG : Payplug::URL_AUTOCONFIG;
+				$url = $sandbox_button ? Payplug::URL_TEST_AUTOCONFIG : Payplug::URL_AUTOCONFIG;
 
 				$process = curl_init($url);
 				curl_setopt($process, CURLOPT_USERPWD, Tools::getValue('payplug_email').':'.Tools::getValue('payplug_password'));
 				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
+				// CURL const are in uppercase
 				curl_setopt($process, CURLOPT_SSLVERSION, defined('CURL_SSLVERSION_TLSV1') ? CURL_SSLVERSION_TLSV1 : 1);
 				curl_setopt($process, CURLOPT_SSL_VERIFYPEER, true);
 				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, true);
@@ -281,6 +291,7 @@ class Payplug extends PaymentModule
 				if ($error_curl == 0)
 				{
 					$json_answer = Tools::jsonDecode($answer);
+					// if account is just in test mod
 					if ($json_answer->status == 403)
 					{
 						$errors[] = sprintf(
@@ -300,6 +311,7 @@ class Payplug extends PaymentModule
 						$private_key = $json_answer->yourPrivateKey;
 						$public_key = $json_answer->payplugPublicKey;
 
+						// explode for validator
 						$payplug_install->updateConfig(
 							$private_key,
 							$public_key,
@@ -307,10 +319,10 @@ class Payplug extends PaymentModule
 							$json_answer->amount_min,
 							$json_answer->amount_max,
 							$currencies,
-							(string)(int)$debug_button);
+							(string)(int)$sandbox_button);
 
 						$display_form = false;
-
+						// redirect for update message
 						Tools::redirectAdmin($this->_link.'&conf=4');
 					}
 					else
@@ -320,9 +332,10 @@ class Payplug extends PaymentModule
 					$errors[] = $error_curl;
 			}
 		}
-		else if (Tools::getIsset('error_mode'))
+		// toggle debug mode
+		else if (Tools::getIsset('debug_mode'))
 		{
-			self::updateConfiguration('PAYPLUG_ERROR', !self::getConfiguration('PAYPLUG_ERROR'));
+			self::updateConfiguration('PAYPLUG_DEBUG', !self::getConfiguration('PAYPLUG_DEBUG'));
 			Tools::redirectAdmin($this->_link.'&conf=4');
 		}
 
@@ -339,12 +352,13 @@ class Payplug extends PaymentModule
 						'minAmount'       => Configuration::get('PAYPLUG_MODULE_MIN_AMOUNT'),
 						'maxAmount'       => Configuration::get('PAYPLUG_MODULE_MAX_AMOUNT'),
 						'currencies'      => Configuration::get('PAYPLUG_MODULE_CURRENCIES'),
-						'debugMode'       => Payplug::getConfiguration('PAYPLUG_SANDBOX'),
-						'errorMode'       => Payplug::getConfiguration('PAYPLUG_ERROR'),
+						'sandboxMode'     => Payplug::getConfiguration('PAYPLUG_SANDBOX'), // Assign sandbox mode
+						'debugMode'       => Payplug::getConfiguration('PAYPLUG_DEBUG'), // assign debug mode
 					)
 				);
 		}
 
+		// Assign datas
 		$datas = array(
 			'this_path'   => $this->_path,
 			'displayForm' => $display_form,
@@ -374,6 +388,7 @@ class Payplug extends PaymentModule
 		$this->assignForVersion('this_path', $this->_path);
 		$this->assignForVersion('iso_lang', $this->context->language->iso_code);
 
+		// Different tpl depending version
 		if (version_compare(_PS_VERSION_, '1.6', '<'))
 		{
 			if (version_compare(_PS_VERSION_, '1.5', '<'))
@@ -397,10 +412,13 @@ class Payplug extends PaymentModule
 			$state = 'waiting';
 		elseif (isset($order->current_state) && $order->current_state == Configuration::get('PAYPLUG_ORDER_STATE_PAID'))
 			$state = 'paid';
+		// if waiting_test state
 		else if (isset($order->current_state) && $order->current_state == Configuration::get('PAYPLUG_ORDER_STATE_WAITING_TEST'))
 			$state = 'waiting_test';
+		// if paid_test state
 		elseif (isset($order->current_state) && $order->current_state == Configuration::get('PAYPLUG_ORDER_STATE_PAID_TEST'))
 			$state = 'paid_test';
+
 		$this->assignForVersion('state', $state);
 		// Get order information for display
 		$total_paid = number_format($order->total_paid, 2, ',', '');
@@ -414,11 +432,17 @@ class Payplug extends PaymentModule
 			return $this->display(__FILE__, 'confirmation.tpl');
 	}
 
+	/**
+	 * Hook for 1.4
+	 */
 	public function hookHeader()
 	{
 		return $this->hookDisplayHeader();
 	}
 
+	/**
+	 * Hook for >= 1.5
+	 */
 	public function hookDisplayHeader()
 	{
 		if (version_compare(_PS_VERSION_, '1.6', '<'))
