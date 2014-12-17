@@ -37,7 +37,7 @@ class Payplug extends PaymentModule
 	const PAYMENT_STATUS_REFUND = 4;
 	const PAYMENT_STATUS_CANCEL = 2;
 	const URL_AUTOCONFIG        = 'https://www.payplug.fr/portal/ecommerce/autoconfig';
-	// Url to sandbox
+	/** Url to sandbox */
 	const URL_TEST_AUTOCONFIG   = 'https://www.payplug.fr/portal/test/ecommerce/autoconfig';
 
 	public function __construct()

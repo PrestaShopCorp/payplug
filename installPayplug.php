@@ -100,9 +100,6 @@ class InstallPayplug
 			'waiting' => null,
 		);
 
-		// Logo source
-		$source = dirname(__FILE__).'/logo.gif';
-
 		// Loop keys
 		foreach ($state_key as $key => $cfg)
 		{

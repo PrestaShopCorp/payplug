@@ -25,18 +25,18 @@
 */
 
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
-// Call init.php to initialize context
+/** Call init.php to initialize context */
 require_once(dirname(__FILE__).'/../../init.php');
 
-// Tips to include class of module and backward_compatibility
+/** Tips to include class of module and backward_compatibility */
 $payplug = Module::getInstanceByName('payplug');
 
-// Check if logs is enable
+/** Check if logs is enable */
 if (Payplug::getConfiguration('PAYPLUG_DEBUG'))
 {
-	// Get display errors configuration
+	/** Get display errors configuration */
 	$display_errors = @ini_get('display_errors');
-	// Set display errors to true
+	/** Set display errors to true */
 	@ini_set('display_errors', true);
 }
 
@@ -90,16 +90,16 @@ if (!isset($headers['PAYPLUG-SIGNATURE']))
 $signature = base64_decode($headers['PAYPLUG-SIGNATURE']);
 
 $body = Tools::file_get_contents('php://input');
-// Use the method of "Tools" for compatibility with future and older versions.
+/** Use the method of "Tools" for compatibility with future and older versions. */
 $data = Tools::jsonDecode($body);
 
 $status = (int)$data->status;
-// Available status
+/** Available status */
 $status_available = array(
 	Payplug::PAYMENT_STATUS_PAID,
 	Payplug::PAYMENT_STATUS_REFUND
 );
-// if status is an available status
+/** if status is an available status */
 if (in_array($status, $status_available))
 {
 	$public_key = Configuration::get('PAYPLUG_MODULE_PUBLIC_KEY');
@@ -123,7 +123,7 @@ if (in_array($status, $status_available))
 
 	if ($data && $bool_sign)
 	{
-		// Data is an object
+		/** Data is an object */
 		$cart = new Cart($data->custom_data);
 		$address = new Address((int)$cart->id_address_invoice);
 		Context::getContext()->country = new Country((int)$address->id_country);
@@ -143,7 +143,7 @@ if (in_array($status, $status_available))
 			if ($status == Payplug::PAYMENT_STATUS_PAID)
 			{
 				$order = new Order($order_id);
-				// Get the right order status following module configuration (Sandbox or not)
+				/** Get the right order status following module configuration (Sandbox or not) */
 				$order_state = Payplug::getOsConfiguration('waiting');
 
 				if ($order->getCurrentState() == $order_state)
@@ -154,7 +154,7 @@ if (in_array($status, $status_available))
 					 */
 					$order_history->id_order = $order_id;
 
-					// Get the right order status following module configuration (Sandbox or not)
+					/** Get the right order status following module configuration (Sandbox or not) */
 					$new_order_state = Payplug::getOsConfiguration('paid');
 					$order_history->changeIdOrderState((int)$new_order_state, $order_id);
 					$order_history->save();
@@ -175,7 +175,7 @@ if (in_array($status, $status_available))
 				 * Change order state to refund by payplug
 				 */
 				$order_history->id_order = $order_id;
-				// Get the right order status following module configuration (Sandbox or not)
+				/** Get the right order status following module configuration (Sandbox or not) */
 				$new_order_state = Payplug::getOsConfiguration('refund');
 				$order_history->changeIdOrderState((int)$new_order_state, $order_id);
 				$order_history->save();
@@ -194,11 +194,11 @@ if (in_array($status, $status_available))
 			if ($status == Payplug::PAYMENT_STATUS_PAID)
 			{
 				$extra_vars = array();
-				// Data is an object
+				/** Data is an object */
 				$extra_vars['transaction_id'] = $data->id_transaction;
 				$currency = (int)$cart->id_currency;
 				$customer = new Customer((int)$cart->id_customer);
-				// Get the right order status following module configuration (Sandbox or not)
+				/** Get the right order status following module configuration (Sandbox or not) */
 				$order_state = Payplug::getOsConfiguration('paid');
 				$amount = (float)$data->amount / 100;
 				$payplug->validateOrder($cart->id, $order_state, $amount, $payplug->displayName, null, $extra_vars, $currency, false, $customer->secure_key);
@@ -222,6 +222,6 @@ if (in_array($status, $status_available))
 	}
 }
 
-// Restore display errors configuration
+/** Restore display errors configuration */
 if (Payplug::getConfiguration('PAYPLUG_DEBUG'))
 	@ini_set('display_errors', $display_errors);

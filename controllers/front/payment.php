@@ -25,13 +25,13 @@
 */
 
 require_once(dirname(__FILE__).'./../../../../config/config.inc.php');
-// Call init.php to initialize context
+/** Call init.php to initialize context */
 require_once(dirname(__FILE__).'/../../../../init.php');
 
-// Tips to include class of module and backward_compatibility
+/** Tips to include class of module and backward_compatibility */
 $payplug = Module::getInstanceByName('payplug');
 
-// Check PS_VERSION
+/** Check PS_VERSION */
 if (version_compare(_PS_VERSION_, '1.4', '<'))
 	return;
 
