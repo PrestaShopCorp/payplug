@@ -25,7 +25,16 @@
 */
 
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
-require_once(dirname(__FILE__).'/payplug.php');
+require_once(dirname(__FILE__).'/../../init.php');
+
+$payplug = Module::getInstanceByName('payplug');
+
+if (Payplug::getConfiguration('PAYPLUG_ERROR'))
+{
+	$display_errors = @ini_get('display_errors');
+	@ini_set('display_errors', true);
+}
+
 /**
  * Check that payplug module is enabled
  */
@@ -66,23 +75,32 @@ $headers = getallheaders();
  * Avoid problems with lowercase/uppercase transaformations
  */
 $headers = array_change_key_case($headers, CASE_UPPER);
+
+
 if (!isset($headers['PAYPLUG-SIGNATURE']))
 {
 	header($_SERVER['SERVER_PROTOCOL'].' 403 Signature not provided', true, 403);
 	die;
 }
-$signature = base64_decode($headers['PAYPLUG-SIGNATURE']);
-$body = Tools::file_get_contents('php://input');
-$data = json_decode($body, true);
 
-$status = $data['status'];
-if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATUS_REFUND)
+$signature = base64_decode($headers['PAYPLUG-SIGNATURE']);
+
+$body = Tools::file_get_contents('php://input');
+$data = Tools::jsonDecode($body);
+
+$status = (int)$data->status;
+
+$status_available = array(
+	Payplug::PAYMENT_STATUS_PAID,
+	Payplug::PAYMENT_STATUS_REFUND
+);
+
+if (in_array($status, $status_available))
 {
-	/**
-	 * Check signature
-	 */
 	$public_key = Configuration::get('PAYPLUG_MODULE_PUBLIC_KEY');
 	$check_signature = openssl_verify($body, $signature, $public_key, OPENSSL_ALGO_SHA1);
+	$bool_sign = false;
+
 	if ($check_signature == 1)
 		$bool_sign = true;
 	else if ($check_signature == 0)
@@ -100,7 +118,12 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 
 	if ($data && $bool_sign)
 	{
-		$cart = new Cart($data['custom_data']);
+		$cart = new Cart($data->custom_data);
+		$address = new Address((int)$cart->id_address_invoice);
+		Context::getContext()->country = new Country((int)$address->id_country);
+		Context::getContext()->customer = new Customer((int)$cart->id_customer);
+		Context::getContext()->language = new Language((int)$cart->id_lang);
+		Context::getContext()->currency = new Currency((int)$cart->id_currency);
 		$order = new Order();
 		$order_id = $order->getOrderByCartId($cart->id);
 		/**
@@ -117,14 +140,17 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 				/**
 				 * If order state is payment in progress by payplug
 				 */
-				if ($order->getCurrentState() == Configuration::get('PAYPLUG_ORDER_STATE_WAITING'))
+				$order_state = Payplug::getOsConfiguration('waiting');
+
+				if ($order->getCurrentState() == $order_state)
 				{
 					$order_history = new OrderHistory();
 					/**
 					 * Change order state to payment paid by payplug
 					 */
 					$order_history->id_order = $order_id;
-					$order_history->changeIdOrderState((int)Configuration::get('PAYPLUG_ORDER_STATE_PAID'), $order_id);
+					$new_order_state = Payplug::getOsConfiguration('paid');
+					$order_history->changeIdOrderState((int)$new_order_state, $order_id);
 					$order_history->save();
 					if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
 					{
@@ -143,7 +169,8 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 				 * Change order state to refund by payplug
 				 */
 				$order_history->id_order = $order_id;
-				$order_history->changeIdOrderState((int)Configuration::get('PAYPLUG_ORDER_STATE_REFUND'), $order_id);
+				$new_order_state = Payplug::getOsConfiguration('refund');
+				$order_history->changeIdOrderState((int)$new_order_state, $order_id);
 				$order_history->save();
 				if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
 				{
@@ -160,12 +187,11 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 			if ($status == Payplug::PAYMENT_STATUS_PAID)
 			{
 				$extra_vars = array();
-				$extra_vars['transaction_id'] = $data['id_transaction'];
+				$extra_vars['transaction_id'] = $data->id_transaction;
 				$currency = (int)$cart->id_currency;
 				$customer = new Customer((int)$cart->id_customer);
-				$payplug = new Payplug();
-				$order_state = Configuration::get('PAYPLUG_ORDER_STATE_PAID');
-				$amount = (float)$data['amount'] / 100;
+				$order_state = Payplug::getOsConfiguration('paid');
+				$amount = (float)$data->amount / 100;
 				$payplug->validateOrder($cart->id, $order_state, $amount, $payplug->displayName, null, $extra_vars, $currency, false, $customer->secure_key);
 				if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
 				{
@@ -186,3 +212,6 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 		die;
 	}
 }
+
+if (Payplug::getConfiguration('PAYPLUG_ERROR'))
+	@ini_set('display_errors', $display_errors);

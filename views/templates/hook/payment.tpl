@@ -24,8 +24,8 @@
 *}
 
 <p class="payment_module">
-	<a href="{$this_path|escape}controllers/front/payment.php" title="{l s='Payer par carte bancaire' mod='payplug'}">
-		<img src="{$this_path|escape}img/payplug.png" alt="{l s='Pay by Payplugwire' mod='payplug'}" width="147" height="49"/>
+	<a href="{$this_path|escape}controllers/front/payment.php" title="{l s='Credit card payment' mod='payplug'}">
+		<img src="{$this_path|escape}img/payplug_{if $iso_lang == 'fr'}fr{else}en{/if}.png" alt="{l s='VISA / MASTERCARD' mod='payplug'}" width="147" height="49"/>
 		{l s='Credit card checkout' mod='payplug'}
 	</a>
 </p>

@@ -25,11 +25,13 @@
 */
 
 require_once(dirname(__FILE__).'./../../../../config/config.inc.php');
-require_once(dirname(__FILE__).'./../../../../header.php');
-require_once(dirname(__FILE__).'./../../payplug.php');
+require_once(dirname(__FILE__).'./../../../../init.php');
 
 /** Backward compatibility */
-require(dirname(__FILE__).'/../../backward_compatibility/backward.php');
+if (version_compare(_PS_VERSION_, '1.4', '<'))
+	return;
+
+$payplug = Module::getInstanceByName('payplug');
 
 if (version_compare(_PS_VERSION_, '1.5', '<'))
 {
@@ -59,8 +61,6 @@ if (!$cart->id)
  */
 if (!($ps = Tools::getValue('ps')) || $ps != 1)
 	Payplug::redirectForVersion('index.php?controller=order&step=1');
-
-$payplug = new Payplug();
 if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$payplug->active)
 	Payplug::redirectForVersion('index.php?controller=order&step=1');
 
@@ -80,7 +80,7 @@ $order = new Order();
 $order_id = $order->getOrderByCartId($cart->id);
 if (!$order_id)
 {
-	$order_state = Configuration::get('PAYPLUG_ORDER_STATE_WAITING');
+	$order_state = Payplug::getOsConfiguration('waiting');
 	$payplug->validateOrder($cart->id, $order_state, $total, $payplug->displayName, false, array(), (int)$currency->id, false, $customer->secure_key);
 	$order = new Order($payplug->currentOrder);
 }
@@ -92,5 +92,5 @@ else
 	$order = new Order($order_id);
 }
 
-$link = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order->id.'&key='.$customer->secure_key;
-Payplug::redirectForVersion($link);
+$link_redirect = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order->id.'&key='.$customer->secure_key;
+Payplug::redirectForVersion($link_redirect);

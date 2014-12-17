@@ -25,10 +25,14 @@
 */
 
 require_once(dirname(__FILE__).'./../../../../config/config.inc.php');
-require_once(dirname(__FILE__).'/../../../../header.php');
-require_once(dirname(__FILE__).'./../../payplug.php');
+require_once(dirname(__FILE__).'/../../../../init.php');
+
+$payplug = Module::getInstanceByName('payplug');
 
 /** Backward compatibility */
+if (version_compare(_PS_VERSION_, '1.4', '<'))
+	return;
+
 require(dirname(__FILE__).'/../../backward_compatibility/backward.php');
 
 /**
@@ -68,8 +72,6 @@ if (version_compare(_PS_VERSION_, '1.5', '<'))
 	$customer = new Customer ($context->cookie->id_customer);
 else
 	$customer = $context->customer;
-
-$payplug = Module::getInstanceByName('payplug');
 
 $params = array('amount'=>$amount,
 				'custom_data'=>$context->cart->id,
