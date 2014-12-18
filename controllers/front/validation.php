@@ -25,11 +25,15 @@
 */
 
 require_once(dirname(__FILE__).'./../../../../config/config.inc.php');
-require_once(dirname(__FILE__).'./../../../../header.php');
-require_once(dirname(__FILE__).'./../../payplug.php');
+/** Call init.php to initialize context */
+require_once(dirname(__FILE__).'/../../../../init.php');
 
-/** Backward compatibility */
-require(dirname(__FILE__).'/../../backward_compatibility/backward.php');
+/** Tips to include class of module and backward_compatibility */
+$payplug = Module::getInstanceByName('payplug');
+
+/** Check PS_VERSION */
+if (version_compare(_PS_VERSION_, '1.4', '<'))
+	return;
 
 if (version_compare(_PS_VERSION_, '1.5', '<'))
 {
@@ -59,8 +63,6 @@ if (!$cart->id)
  */
 if (!($ps = Tools::getValue('ps')) || $ps != 1)
 	Payplug::redirectForVersion('index.php?controller=order&step=1');
-
-$payplug = new Payplug();
 if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$payplug->active)
 	Payplug::redirectForVersion('index.php?controller=order&step=1');
 
@@ -80,7 +82,8 @@ $order = new Order();
 $order_id = $order->getOrderByCartId($cart->id);
 if (!$order_id)
 {
-	$order_state = Configuration::get('PAYPLUG_ORDER_STATE_WAITING');
+	/** Get the right order status following module configuration (Sandbox or not) */
+	$order_state = Payplug::getOsConfiguration('waiting');
 	$payplug->validateOrder($cart->id, $order_state, $total, $payplug->displayName, false, array(), (int)$currency->id, false, $customer->secure_key);
 	$order = new Order($payplug->currentOrder);
 }
@@ -92,5 +95,6 @@ else
 	$order = new Order($order_id);
 }
 
-$link = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order->id.'&key='.$customer->secure_key;
-Payplug::redirectForVersion($link);
+/** Change variable name, because $link is already instanciated */
+$link_redirect = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order->id.'&key='.$customer->secure_key;
+Payplug::redirectForVersion($link_redirect);

@@ -29,6 +29,20 @@ if (!defined('_PS_VERSION_'))
 
 class InstallPayplug
 {
+
+	/**
+	 * Available types
+	 * @var array
+	 */
+	private static $available_types = array(
+			'waiting',
+			'paid',
+			'refund',
+			'paid_test',
+			'refund_test',
+			'waiting_test'
+		);
+
 	public function createConfig()
 	{
 		Configuration::updateValue('PAYPLUG_MODULE_KEY', '');
@@ -37,8 +51,21 @@ class InstallPayplug
 		Configuration::updateValue('PAYPLUG_MODULE_MIN_AMOUNT', '');
 		Configuration::updateValue('PAYPLUG_MODULE_MAX_AMOUNT', '');
 		Configuration::updateValue('PAYPLUG_MODULE_CURRENCIES', '');
+		Payplug::updateConfiguration('PAYPLUG_SANDBOX', '');
+		Payplug::updateConfiguration('PAYPLUG_DEBUG', '');
 	}
-	public function updateConfig($private_key = '', $public_key = '', $url = '', $min_amount = '', $max_amount = '', $currencies = '')
+
+	/**
+	 * Update configuration
+	 * @param  string  $private_key Private key
+	 * @param  string  $public_key  Public key
+	 * @param  string  $url         Url
+	 * @param  string  $min_amount  Min amount
+	 * @param  string  $max_amount  Max amount
+	 * @param  string  $currencies  Available currencies
+	 * @param  boolean $debug       Mod sandbox or not
+	 */
+	public function updateConfig($private_key = '', $public_key = '', $url = '', $min_amount = '', $max_amount = '', $currencies = '', $sandbox = null)
 	{
 		Configuration::updateValue('PAYPLUG_MODULE_KEY', ''.$private_key.'');
 		Configuration::updateValue('PAYPLUG_MODULE_PUBLIC_KEY', ''.$public_key.'');
@@ -46,7 +73,9 @@ class InstallPayplug
 		Configuration::updateValue('PAYPLUG_MODULE_MIN_AMOUNT', $min_amount);
 		Configuration::updateValue('PAYPLUG_MODULE_MAX_AMOUNT', $max_amount);
 		Configuration::updateValue('PAYPLUG_MODULE_CURRENCIES', $currencies);
+		Payplug::updateConfiguration('PAYPLUG_SANDBOX', $sandbox);
 	}
+
 	public function deleteConfig()
 	{
 		Configuration::deleteByName('PAYPLUG_MODULE_KEY');
@@ -55,6 +84,8 @@ class InstallPayplug
 		Configuration::deleteByName('PAYPLUG_MODULE_MIN_AMOUNT', '');
 		Configuration::deleteByName('PAYPLUG_MODULE_MAX_AMOUNT', '');
 		Configuration::deleteByName('PAYPLUG_MODULE_CURRENCIES', '');
+		Configuration::deleteByName('PAYPLUG_SANDBOX', '');
+		Configuration::deleteByName('PAYPLUG_DEBUG', '');
 	}
 
 	/**
@@ -62,84 +93,110 @@ class InstallPayplug
 	 */
 	public function createOrderState()
 	{
-		if (!Configuration::get('PAYPLUG_ORDER_STATE_WAITING'))
+		// Key => status type, value => Prestashop Default Configuration
+		$state_key = array(
+			'paid'    => 'PS_OS_PAYMENT',
+			'refund'  => 'PS_OS_REFUND',
+			'waiting' => null,
+		);
+
+		// Loop keys
+		foreach ($state_key as $key => $cfg)
 		{
-			$order_state = new OrderState();
-			$this->initOrderState($order_state, 'waiting');
-			if ($order_state->add())
+			// Configuration key
+			$key_config = 'PAYPLUG_ORDER_STATE_'.Tools::strtoupper($key);
+
+			// If config is not null
+			if ($cfg != null)
 			{
-				$source = dirname(__FILE__).'/logo.gif';
-				$destination = dirname(__FILE__).'/../../img/os/'.(int)$order_state->id.'.gif';
-				copy($source, $destination);
-			}
-			Configuration::updateValue('PAYPLUG_ORDER_STATE_WAITING', (int)$order_state->id);
-		}
-		else
-		{
-			$order_state = new OrderState(Configuration::get('PAYPLUG_ORDER_STATE_WAITING'));
-			$this->initOrderState($order_state, 'waiting');
-			$order_state->update();
-		}
-		if (!Configuration::get('PAYPLUG_ORDER_STATE_PAID'))
-		{
-			if (!defined('_PS_OS_PAYMENT_') && !Configuration::get('PS_OS_PAYMENT'))
-			{
-				$order_state = new OrderState();
-				$this->initOrderState($order_state, 'paid');
-				if ($order_state->add())
+				// Update OS PayPlug payment
+				if (defined('_'.$cfg.'_') || Payplug::getConfiguration($cfg))
 				{
-					$source = dirname(__FILE__).'/logo.gif';
-					$destination = dirname(__FILE__).'/../../img/os/'.(int)$order_state->id.'.gif';
-					copy($source, $destination);
+					// If is in configuration (since 1.5)
+					if (!($os = Configuration::get($cfg)))
+						$os = defined('_'.$cfg.'_');
+
+					// Update configuration
+					Payplug::updateConfiguration($key_config, (int)$os);
 				}
-				$os_payment = $order_state->id;
 			}
-			else if ($os = Configuration::get('PS_OS_PAYMENT'))
-				$os_payment = $os;
+			// Create Order State if "Prestashop Default Configuration" is null
 			else
-				$os_payment = defined('_PS_OS_PAYMENT_');
-			Configuration::updateValue('PAYPLUG_ORDER_STATE_PAID', (int)$os_payment);
+				$this->createOrderStateSpecifc($key);
+
+			// Create os tests
+			$this->createOrderStateSpecifc($key, true);
 		}
-		else
+
+	}
+
+	/**
+	 * Create order
+	 * @param  string  $key  OS Key
+	 * @param  boolean $test if os test
+	 */
+	private function createOrderStateSpecifc($key, $test = false)
+	{
+		// Logo source
+		$source = dirname(__FILE__).'/logo.gif';
+
+		// If is an OS test
+		if ($test == true)
+			$key .= '_test';
+
+		// Configuration key
+		$key_config = 'PAYPLUG_ORDER_STATE_'.Tools::strtoupper($key);
+
+		// If configuration not exists
+		if (!($os = Payplug::getConfiguration($key_config)))
 		{
-			$order_state = new OrderState(Configuration::get('PAYPLUG_ORDER_STATE_PAID'));
-			$this->initOrderState($order_state, 'paid');
-			$order_state->update();
-		}
-		if (!Configuration::get('PAYPLUG_ORDER_STATE_REFUND'))
-		{
+			// New state
 			$order_state = new OrderState();
-			$this->initOrderState($order_state, 'refund');
+			// Init state
+			$this->initOrderState($order_state, Tools::strtolower($key));
+			// Add state
 			if ($order_state->add())
 			{
-				$source = dirname(__FILE__).'/logo.gif';
-				$destination = dirname(__FILE__).'/../../img/os/'.(int)$order_state->id.'.gif';
+				// Change
+				$destination = _PS_IMG_DIR_.'os/'.(int)$order_state->id.'.gif';
 				copy($source, $destination);
 			}
-			Configuration::updateValue('PAYPLUG_ORDER_STATE_REFUND', (int)$order_state->id);
+
+			// Update configuration
+			Payplug::updateConfiguration($key_config, (int)$order_state->id);
 		}
+		// if configuration exists update status
 		else
 		{
-			$order_state = new OrderState(Configuration::get('PAYPLUG_ORDER_STATE_REFUND'));
-			$this->initOrderState($order_state, 'refund');
+			// Get status
+			$order_state = new OrderState($os);
+			// Init status
+			$this->initOrderState($order_state, Tools::strtolower($key));
+			// Update status
 			$order_state->update();
 		}
 	}
 
 	/**
-	 * Init parameters of PayPlug order states waiting and paid refund
+	 * Init parameters of PayPlug order states
 	 */
 	private function initOrderState(&$order_state = null, $type = null)
 	{
-		if (is_null($order_state) || is_null($type) || ($type != 'waiting' && $type != 'paid' && $type != 'refund'))
+		// Check if parameters is not null & if $type is an available type
+		if (is_null($order_state) || is_null($type) || !in_array($type, self::$available_types))
 			return;
+
 		$order_state->name = $this->getOrderStateName($type);
 		$order_state->send_email = false;
-		if ($type == 'waiting')
+
+		// OS Waiting or Waiting test
+		if ($type == 'waiting' || $type == 'waiting_test')
 			$order_state->color = '#a1f8a1';
-		else if ($type == 'refund')
+		// OS Refund or Refund test
+		else if ($type == 'refund' || $type == 'refund_test')
 			$order_state->color = '#EA3737';
-		else if ($type == 'paid')
+		// OS Paid or Paid test
+		else if ($type == 'paid' || $type == 'paid_test')
 		{
 			$order_state->color = '#04B404';
 			$order_state->send_email = true;
@@ -156,11 +213,12 @@ class InstallPayplug
 				$order_state->paid = true;
 			}
 		}
+
 		$order_state->module_name = 'PayPlug';
-		$order_state->hidden = false;
-		$order_state->delivery = false;
-		$order_state->logable = true;
-		$order_state->invoice = true;
+		$order_state->hidden      = false;
+		$order_state->delivery    = false;
+		$order_state->logable     = true;
+		$order_state->invoice     = true;
 	}
 
 	/**
@@ -168,28 +226,34 @@ class InstallPayplug
 	 */
 	private function getOrderStateName($type = null)
 	{
-		if (is_null($type) || ($type != 'waiting' && $type != 'paid' && $type != 'refund'))
+		// Check if parameters is not null & if $type is an available type
+		if (is_null($type) || !in_array($type, self::$available_types))
 			return;
+
 		$order_state_name = array();
 		foreach (Language::getLanguages() as $language)
 		{
 			if (Tools::strtolower($language['iso_code']) == 'fr')
 			{
 				if ($type == 'waiting')
-					$order_state_name[$language['id_lang']] = 'Paiement en cours de traitement par PayPlug';
-				else if ($type == 'refund')
-					$order_state_name[$language['id_lang']] = 'Paiement remboursé par PayPlug';
-				elseif ($type == 'paid')
-					$order_state_name[$language['id_lang']] = 'Paiement effectué depuis Payplug';
+					$order_state_name[$language['id_lang']] = 'Paiement en cours [PayPlug]';
+				else if ($type == 'waiting_test')
+					$order_state_name[$language['id_lang']] = 'Paiement en cours [TEST]';
+				else if ($type == 'refund_test')
+					$order_state_name[$language['id_lang']] = 'Remboursé [TEST]';
+				elseif ($type == 'paid_test')
+					$order_state_name[$language['id_lang']] = 'Paiement effectué [TEST]';
 			}
 			else
 			{
 				if ($type == 'waiting')
-					$order_state_name[$language['id_lang']] = 'Payment accepted and in progress by PayPlug';
-				else if ($type == 'refund')
-					$order_state_name[$language['id_lang']] = 'Payment refunded by PayPlug';
-				elseif ($type == 'paid')
-					$order_state_name[$language['id_lang']] = 'Payment has passed by Payplug';
+					$order_state_name[$language['id_lang']] = 'Payment in progress [PayPlug]';
+				if ($type == 'waiting_test')
+					$order_state_name[$language['id_lang']] = 'Payment in progress [TEST]';
+				else if ($type == 'refund_test')
+					$order_state_name[$language['id_lang']] = 'Refunded [TEST]';
+				elseif ($type == 'paid_test')
+					$order_state_name[$language['id_lang']] = 'Payment successful [TEST]';
 			}
 		}
 		return $order_state_name;
