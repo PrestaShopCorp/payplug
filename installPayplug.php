@@ -191,10 +191,16 @@ class InstallPayplug
 
 		// OS Waiting or Waiting test
 		if ($type == 'waiting' || $type == 'waiting_test')
+		{
 			$order_state->color = '#a1f8a1';
+			$order_state->logable = false;
+		}
 		// OS Refund or Refund test
 		else if ($type == 'refund' || $type == 'refund_test')
+		{
 			$order_state->color = '#EA3737';
+			$order_state->logable = false;
+		}
 		// OS Paid or Paid test
 		else if ($type == 'paid' || $type == 'paid_test')
 		{
@@ -212,12 +218,12 @@ class InstallPayplug
 				$order_state->template = 'payment';
 				$order_state->paid = true;
 			}
+			$order_state->logable = true;
 		}
 
 		$order_state->module_name = 'PayPlug';
 		$order_state->hidden      = false;
 		$order_state->delivery    = false;
-		$order_state->logable     = true;
 		$order_state->invoice     = true;
 	}
 

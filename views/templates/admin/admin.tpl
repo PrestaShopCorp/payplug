@@ -55,12 +55,12 @@
 
 	<h2>{l s='How to activate PayPlug' mod='payplug'}</h2>
 
-	<h3>{l s='Step 1 : Open a PayPlug account' mod='payplug'}</h3>
+	<h3 class="modal-title">{l s='Step 1 : Open a PayPlug account' mod='payplug'}</h3>
 	<p>
 		{l s='You can sign up for free in under a minute' mod='payplug'} <a href="https://www.payplug.fr/inscription" class="button btn btn-default">{l s='SIGN UP' mod='payplug'}</a>
 	</p>
 
-	<h3>{l s='Step 2 : Set up the module' mod='payplug'}</h3>
+	<h3 class="modal-title">{l s='Step 2 : Set up the module' mod='payplug'}</h3>
 	<p>{l s='To activate payments on your website, you must set up the module with the login information you created when you signed up to PayPlug.' mod='payplug'}</p>
 
 	{if !isset($sandboxMode) || $sandboxMode == ''}
@@ -73,7 +73,7 @@
 			<span class="underline">{l s='Note that payments you collect are not real.' mod='payplug'}</span>
 		</div>
 	{else}
-		<div class="notif alert alert-warning warn">
+		<div class="notif alert alert-success success">
 			{l s='The module is correctly set up in LIVE mode. You are collecting real payments.' mod='payplug'}
 		</div>
 	{/if}
