@@ -110,6 +110,17 @@ class Payplug extends PaymentModule
 			// Add test status && add hook
 			if ($version === false || version_compare($version, '0.9.7', '<'))
 			{
+
+				$os = new OrderState(Payplug::getConfiguration('PAYPLUG_ORDER_STATE_REFUND'));
+
+				if (Validate::isLoadedObject($os))
+				{
+					$os->delete();
+					Configuration::deleteByName('PAYPLUG_ORDER_STATE_REFUND');
+				}
+
+				Payplug::updateConfiguration('PAYPLUG_SANDBOX', '0');
+
 				$install = new InstallPayplug();
 				$install->createOrderState();
 
