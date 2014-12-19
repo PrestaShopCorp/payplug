@@ -73,7 +73,7 @@
 			<span class="underline">{l s='Note that payments you collect are not real.' mod='payplug'}</span>
 		</div>
 	{else}
-		<div class="notif alert alert-success success">
+		<div class="notif alert alert-success conf">
 			{l s='The module is correctly set up in LIVE mode. You are collecting real payments.' mod='payplug'}
 		</div>
 	{/if}
