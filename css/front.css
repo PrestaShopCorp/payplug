@@ -1,6 +1,6 @@
 p.payment_module a.payplug
 {
-	background: url('/modules/payplug/img/payplug_fr.png') 15px center no-repeat #FBFBFB;
+	background: url('../img/payplug_fr.png') 15px center no-repeat #FBFBFB;
 	padding-left: 197px;
 }
 
