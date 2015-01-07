@@ -4,7 +4,14 @@
     border: solid 1px #bebebe;
     padding: 20px;
     color: #666666;
+    font-family: "Open Sans";
 }
+
+#payplug_admin * 
+{
+    font-family: inherit;
+}
+
 #sandboxSettings, #liveSettings
 {
 	display: none;
@@ -33,4 +40,16 @@
 #payplug_admin h3 + p
 {
 	margin-bottom: 25px;
+}
+
+#payplug_admin h2
+{
+	border-top: 1px solid #CCC;
+	padding-top: 15px;
+	margin-top: 30px;
+}
+
+#payplug_admin h4
+{
+	margin-top: 30px;
 }

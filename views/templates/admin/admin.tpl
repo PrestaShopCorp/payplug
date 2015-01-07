@@ -23,10 +23,11 @@
 *  International Registered Trademark & Property of PayPlug SAS
 *}
 
+<link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300" rel="stylesheet" type="text/css">
 <link rel="stylesheet" type="text/css" href="{$this_path|escape:'htmlall'}css/admin.css">
 <div id="payplug_admin">
 	<img src="{$this_path|escape:'htmlall'}img/logoPayPlug.png" alt="logoPayPlug">
-	<h2>{l s='The simplest online payment solution' mod='payplug'}</h2>
+	<h1>{l s='The simplest online payment solution' mod='payplug'}</h1>
 	<p>{l s='PayPlug provides small e-merchants all the benefits of a full online payment solution.' mod='payplug'}</p>
 
 	<ul>
@@ -57,7 +58,7 @@
 
 	<h3 class="modal-title">{l s='Step 1 : Open a PayPlug account' mod='payplug'}</h3>
 	<p>
-		{l s='You can sign up for free in under a minute' mod='payplug'} <a href="https://www.payplug.fr/inscription" class="button btn btn-default">{l s='SIGN UP' mod='payplug'}</a>
+		{l s='You can sign up for free in under a minute' mod='payplug'} <a href="https://www.payplug.fr/inscription?origin=PrestashopConfig" class="button btn btn-default">{l s='SIGN UP' mod='payplug'}</a>
 	</p>
 
 	<h3 class="modal-title">{l s='Step 2 : Set up the module' mod='payplug'}</h3>
@@ -164,7 +165,7 @@
 		</p>
 	</form>
 
-
+	<h2>{l s='Debug mod' mod='payplug'}</h2>
 	<p>
 		{if !isset($debugMode) || $debugMode == false}
 			{l s='Debug mode not activated.' mod='payplug'}

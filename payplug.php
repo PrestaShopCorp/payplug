@@ -367,7 +367,7 @@ class Payplug extends PaymentModule
 			'this_path'   => $this->_path,
 			'displayForm' => $display_form,
 			'errors'      => $errors,
-			'this_link'   => $this->_link
+			'this_link'   => $this->_link,
 		);
 
 		$this->assignForVersion($datas);

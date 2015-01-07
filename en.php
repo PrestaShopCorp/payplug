@@ -45,6 +45,7 @@ $_MODULE['<{payplug}prestashop>admin_0d014c7ca644a43bc03699e1a7b639f6'] = 'Set u
 $_MODULE['<{payplug}prestashop>admin_17c9e8be0eefcb92b4b4612a516ccd74'] = 'You still have questions? Take a look at our';
 $_MODULE['<{payplug}prestashop>admin_947219ffd2492f689ad9d600405d368e'] = 'Support Center';
 $_MODULE['<{payplug}prestashop>admin_f61e85c0bed2c208a811e9414ff622c4'] = 'to contact our sales team.';
+$_MODULE['<{payplug}prestashop>admin_e062937c99bea54761a9b2413457514d'] = 'Debug mod';
 $_MODULE['<{payplug}prestashop>admin_dbf53642e10b960b949e7b426fc75003'] = 'Debug mode not activated.';
 $_MODULE['<{payplug}prestashop>admin_2fac1c513e779aedcbf9f3b95fc6de5e'] = 'Debug mode activated.';
 $_MODULE['<{payplug}prestashop>admin_a13367a8e2a3f3bf4f3409079e3fdf87'] = 'Activate';
