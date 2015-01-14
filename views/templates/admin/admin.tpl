@@ -58,8 +58,11 @@
 
 	<h3 class="modal-title">{l s='Step 1 : Open a PayPlug account' mod='payplug'}</h3>
 	<p>
-		{l s='You can sign up for free in under a minute' mod='payplug'} <a href="https://www.payplug.fr/inscription?origin=PrestashopConfig" class="button btn btn-default">{l s='SIGN UP' mod='payplug'}</a>
+		{l s='You can sign up for free in under a minute' mod='payplug'}
 	</p>
+	<div>
+		 <a href="https://www.payplug.fr/inscription?origin=PrestashopConfig" class="button btn btn-default" target="_blank">{l s='SIGN UP' mod='payplug'}</a>
+	</div>
 
 	<h3 class="modal-title">{l s='Step 2 : Set up the module' mod='payplug'}</h3>
 	<p>{l s='To activate payments on your website, you must set up the module with the login information you created when you signed up to PayPlug.' mod='payplug'}</p>
@@ -103,7 +106,7 @@
 	<form class="form-horizontal" id="sandboxSettings" method="POST" action="{$this_link|escape:'htmlall'}">
 		<p>
 			{l s='Not yet signed up? Enter an email and password on' mod='payplug'}
-			<a target="_blank" href="http://www.payplug.fr/inscription">www.payplug.fr/inscription</a>
+			<a target="_blank" href="http://www.payplug.fr/inscription?origin=PrestashopConfig" target="_blank">www.payplug.fr/inscription</a>
 			{l s=' and return here to set up your module.' mod='payplug'}
 		</p>
 		<div class="form-group">
@@ -179,12 +182,14 @@
 			$(function(){
 
 				$('.sandboxSettings').click(function(){
-					$('#sandboxSettings').slideToggle('slow');
+					$('#sandboxSettings').slideToggle('fast');
+					$('#liveSettings').slideUp('fast');
 					return false;
 				});
 
 				$('.liveSettings').click(function(){
-					$('#liveSettings').slideToggle('slow');
+					$('#liveSettings').slideToggle('fast');
+					$('#sandboxSettings').slideUp('fast');
 					return false;
 				});
 
