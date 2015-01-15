@@ -264,4 +264,26 @@ class InstallPayplug
 		}
 		return $order_state_name;
 	}
+
+	public function installPayplugLock()
+	{
+
+		$SQL = "
+		CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."payplug_lock` (
+			`id_payplug_lock` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			`id_cart` INT NOT NULL,
+			`date_add` DATETIME NOT NULL,
+			`date_upd` DATETIME NOT NULL
+			) ENGINE="._MYSQL_ENGINE_." ";
+
+		$return = DB::getInstance()->Execute($SQL);
+	}
+
+	public function uninstallPayplugLock()
+	{
+
+		$SQL = " DROP TABLE IF EXISTS `"._DB_PREFIX_."payplug_lock` ";
+
+		$return = DB::getInstance()->Execute($SQL);
+	}
 }

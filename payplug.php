@@ -122,6 +122,8 @@ class Payplug extends PaymentModule
 				else
 					$this->registerHook('displayHeader');
 
+				$install->installPayplugLock();
+
 			}
 
 			// Upgrade in DataBase the new version
@@ -194,6 +196,9 @@ class Payplug extends PaymentModule
 		$payplug_install = new InstallPayplug();
 		$payplug_install->createConfig();
 		$payplug_install->createOrderState();
+
+		$install->installPayplugLock();
+
 		return true;
 	}
 
@@ -201,6 +206,8 @@ class Payplug extends PaymentModule
 	{
 		$payplug_install = new InstallPayplug();
 		$payplug_install->deleteConfig();
+		$payplug_install->uninstallPayplugLock();
+
 		return parent::uninstall();
 	}
 

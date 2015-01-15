@@ -27,6 +27,7 @@
 require_once(dirname(__FILE__).'./../../../../config/config.inc.php');
 /** Call init.php to initialize context */
 require_once(dirname(__FILE__).'/../../../../init.php');
+require_once(dirname(__FILE__).'/../../classes/PayplugLock.php');
 
 /** Tips to include class of module and backward_compatibility */
 $payplug = Module::getInstanceByName('payplug');
@@ -78,23 +79,21 @@ if (!Validate::isLoadedObject($customer))
 
 $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
 
-$order = new Order();
-$order_id = $order->getOrderByCartId($cart->id);
+PayplugLock::check($cart->id);
+
+$order_id = Order::getOrderByCartId($cart->id);
+
+
 if (!$order_id)
 {
+	PayplugLock::addLock($cart->id);
 	/** Get the right order status following module configuration (Sandbox or not) */
 	$order_state = Payplug::getOsConfiguration('waiting');
 	$payplug->validateOrder($cart->id, $order_state, $total, $payplug->displayName, false, array(), (int)$currency->id, false, $customer->secure_key);
-	$order = new Order($payplug->currentOrder);
-}
-else
-{
-	/**
-	 * Ipn has been received
-	 */
-	$order = new Order($order_id);
+	PayplugLock::deleteLock($cart->id);
+	
 }
 
 /** Change variable name, because $link is already instanciated */
-$link_redirect = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order->id.'&key='.$customer->secure_key;
+$link_redirect = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order_id.'&key='.$customer->secure_key;
 Payplug::redirectForVersion($link_redirect);
