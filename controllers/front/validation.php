@@ -91,6 +91,8 @@ if (!$order_id)
 	$order_state = Payplug::getOsConfiguration('waiting');
 	$payplug->validateOrder($cart->id, $order_state, $total, $payplug->displayName, false, array(), (int)$currency->id, false, $customer->secure_key);
 	PayplugLock::deleteLock($cart->id);
+
+	$order_id = $payplug->currentOrder;
 	
 }
 
