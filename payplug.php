@@ -197,7 +197,7 @@ class Payplug extends PaymentModule
 		$payplug_install->createConfig();
 		$payplug_install->createOrderState();
 
-		$install->installPayplugLock();
+		$payplug_install->installPayplugLock();
 
 		return true;
 	}
