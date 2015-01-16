@@ -285,13 +285,15 @@ class Payplug extends PaymentModule
 				// Get url to curl
 				$url = $sandbox_button ? Payplug::URL_TEST_AUTOCONFIG : Payplug::URL_AUTOCONFIG;
 
+				$curl_version = curl_version();
+
 				$process = curl_init($url);
 				curl_setopt($process, CURLOPT_USERPWD, Tools::getValue('payplug_email').':'.Tools::getValue('payplug_password'));
 				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
 				// CURL const are in uppercase
 				curl_setopt($process, CURLOPT_SSLVERSION, defined('CURL_SSLVERSION_TLSV1') ? CURL_SSLVERSION_TLSV1 : 1);
 				curl_setopt($process, CURLOPT_SSL_VERIFYPEER, true);
-				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, true);
+				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, (version_compare($curl_version['version'], '7.28.1', '<') ? true : 2));
 				curl_setopt($process, CURLOPT_CAINFO, realpath(dirname(__FILE__).'/cacert.pem')); //work only wiht cURL 7.10+
 				$answer = curl_exec($process);
 
