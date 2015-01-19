@@ -4,7 +4,7 @@ global $_MODULE;
 $_MODULE = array();
 $_MODULE['<{payplug}prestashop>payplug_5fcaf79f4f4e91a7a3ae186d3f74bf08'] = 'PayPlug n’est pas compatible avec les version inférieures à 1.4 de PrestaShop. Pour retrouver un fonctionnement normal, supprimez le répertoire /payplug dans le répertoire de vos modules de PrestaShop.';
 $_MODULE['<{payplug}prestashop>payplug_bbf04ff90578fd1c19834db5809c55f4'] = 'PayPlug – Paiement en ligne simple et sécurisé';
-$_MODULE['<{payplug}prestashop>payplug_8bc3c9271813cb30ad64d959e30ee7e2'] = 'La solution de paiement en ligne la plus simple : inscription gratuite, sans frais fixe et sans contrat VAD !';
+$_MODULE['<{payplug}prestashop>payplug_8bc3c9271813cb30ad64d959e30ee7e2'] = 'La solution de paiement en ligne la plus simple : inscription gratuite, sans abonnement et sans contrat VAD !';
 $_MODULE['<{payplug}prestashop>payplug_40c60d7d0db191b9cd543745f8ae3679'] = 'Êtes-vous sûr de vouloir désinstaller ce module et supprimer votre configuration ?';
 $_MODULE['<{payplug}prestashop>payplug_b9f5fef1efb4c4a138f9fabcc4c8716c'] = 'Echec de connexion: librairie %s manquante. Nous vous invitons à demander à votre hébergeur d\'installer la librairie %s sur votre serveur, puis à réessayer de configurer le module PayPlug sur Prestashop.';
 $_MODULE['<{payplug}prestashop>payplug_3c4a1c3339f7eee73aad899edb11031e'] = 'Pour paramétrer le module en mode LIVE, vous devez d’abord %s demander l\'activation de votre compte %s.';
