@@ -293,7 +293,8 @@ class Payplug extends PaymentModule
 				// CURL const are in uppercase
 				curl_setopt($process, CURLOPT_SSLVERSION, defined('CURL_SSLVERSION_TLSV1') ? CURL_SSLVERSION_TLSV1 : 1);
 				curl_setopt($process, CURLOPT_SSL_VERIFYPEER, true);
-				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, (version_compare($curl_version['version'], '7.28.1', '<') ? true : 2));
+				# >= 7.26 to 7.28.1 add a notice message for value 1 will be remove
+				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, (version_compare($curl_version['version'], '7.26', '<') ? true : 2));
 				curl_setopt($process, CURLOPT_CAINFO, realpath(dirname(__FILE__).'/cacert.pem')); //work only wiht cURL 7.10+
 				$answer = curl_exec($process);
 
