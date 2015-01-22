@@ -27,6 +27,7 @@
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
 /** Call init.php to initialize context */
 require_once(dirname(__FILE__).'/../../init.php');
+require_once(dirname(__FILE__).'/classes/PayplugLock.php');
 
 /** Tips to include class of module and backward_compatibility */
 $payplug = Module::getInstanceByName('payplug');
@@ -130,13 +131,20 @@ if (in_array($status, $status_available))
 		Context::getContext()->customer = new Customer((int)$cart->id_customer);
 		Context::getContext()->language = new Language((int)$cart->id_lang);
 		Context::getContext()->currency = new Currency((int)$cart->id_currency);
+
+
+		PayplugLock::check($cart->id);
+
 		$order = new Order();
 		$order_id = $order->getOrderByCartId($cart->id);
+
+
 		/**
 		 * If existing order
 		 */
 		if ($order_id)
 		{
+
 			/**
 			 * If status paid
 			 */
@@ -145,8 +153,9 @@ if (in_array($status, $status_available))
 				$order = new Order($order_id);
 				/** Get the right order status following module configuration (Sandbox or not) */
 				$order_state = Payplug::getOsConfiguration('waiting');
+				$current_state = $order->getCurrentState();
 
-				if ($order->getCurrentState() == $order_state)
+				if ($current_state == $order_state)
 				{
 					$order_history = new OrderHistory();
 					/**
@@ -191,6 +200,9 @@ if (in_array($status, $status_available))
 		 */
 		else
 		{
+
+			PayplugLock::addLock($cart->id);
+
 			if ($status == Payplug::PAYMENT_STATUS_PAID)
 			{
 				$extra_vars = array();
@@ -211,6 +223,8 @@ if (in_array($status, $status_available))
 					$order_payment->update();
 				}
 			}
+
+			PayplugLock::deleteLock($cart->id);
 		}
 		Configuration::updateValue('PAYPLUG_CONFIGURATION_OK', true);
 	}
@@ -225,3 +239,4 @@ if (in_array($status, $status_available))
 /** Restore display errors configuration */
 if (Payplug::getConfiguration('PAYPLUG_DEBUG'))
 	@ini_set('display_errors', $display_errors);
+

@@ -44,6 +44,7 @@ class Payplug extends PaymentModule
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
+		// Update version
 		$this->version = '0.9.7';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
@@ -109,6 +110,10 @@ class Payplug extends PaymentModule
 			// Add test status && add hook
 			if ($version === false || version_compare($version, '0.9.7', '<'))
 			{
+				Configuration::deleteByName('PAYPLUG_ORDER_STATE_REFUND');
+
+				Payplug::updateConfiguration('PAYPLUG_SANDBOX', '0');
+
 				$install = new InstallPayplug();
 				$install->createOrderState();
 
@@ -116,6 +121,8 @@ class Payplug extends PaymentModule
 					$this->registerHook('header');
 				else
 					$this->registerHook('displayHeader');
+
+				$install->installPayplugLock();
 
 			}
 
@@ -189,6 +196,9 @@ class Payplug extends PaymentModule
 		$payplug_install = new InstallPayplug();
 		$payplug_install->createConfig();
 		$payplug_install->createOrderState();
+
+		$payplug_install->installPayplugLock();
+
 		return true;
 	}
 
@@ -196,6 +206,8 @@ class Payplug extends PaymentModule
 	{
 		$payplug_install = new InstallPayplug();
 		$payplug_install->deleteConfig();
+		$payplug_install->uninstallPayplugLock();
+
 		return parent::uninstall();
 	}
 
@@ -273,13 +285,16 @@ class Payplug extends PaymentModule
 				// Get url to curl
 				$url = $sandbox_button ? Payplug::URL_TEST_AUTOCONFIG : Payplug::URL_AUTOCONFIG;
 
+				$curl_version = curl_version();
+
 				$process = curl_init($url);
 				curl_setopt($process, CURLOPT_USERPWD, Tools::getValue('payplug_email').':'.Tools::getValue('payplug_password'));
 				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
 				// CURL const are in uppercase
 				curl_setopt($process, CURLOPT_SSLVERSION, defined('CURL_SSLVERSION_TLSV1') ? CURL_SSLVERSION_TLSV1 : 1);
 				curl_setopt($process, CURLOPT_SSL_VERIFYPEER, true);
-				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, true);
+				# >= 7.26 to 7.28.1 add a notice message for value 1 will be remove
+				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, (version_compare($curl_version['version'], '7.21', '<') ? true : 2));
 				curl_setopt($process, CURLOPT_CAINFO, realpath(dirname(__FILE__).'/cacert.pem')); //work only wiht cURL 7.10+
 				$answer = curl_exec($process);
 
@@ -362,7 +377,7 @@ class Payplug extends PaymentModule
 			'this_path'   => $this->_path,
 			'displayForm' => $display_form,
 			'errors'      => $errors,
-			'this_link'   => $this->_link
+			'this_link'   => $this->_link,
 		);
 
 		$this->assignForVersion($datas);

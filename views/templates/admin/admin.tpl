@@ -23,10 +23,11 @@
 *  International Registered Trademark & Property of PayPlug SAS
 *}
 
+<link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300" rel="stylesheet" type="text/css">
 <link rel="stylesheet" type="text/css" href="{$this_path|escape:'htmlall'}css/admin.css">
 <div id="payplug_admin">
 	<img src="{$this_path|escape:'htmlall'}img/logoPayPlug.png" alt="logoPayPlug">
-	<h2>{l s='The simplest online payment solution' mod='payplug'}</h2>
+	<h1>{l s='The simplest online payment solution' mod='payplug'}</h1>
 	<p>{l s='PayPlug provides small e-merchants all the benefits of a full online payment solution.' mod='payplug'}</p>
 
 	<ul>
@@ -55,12 +56,15 @@
 
 	<h2>{l s='How to activate PayPlug' mod='payplug'}</h2>
 
-	<h3>{l s='Step 1 : Open a PayPlug account' mod='payplug'}</h3>
+	<h3 class="modal-title">{l s='Step 1 : Open a PayPlug account' mod='payplug'}</h3>
 	<p>
-		{l s='You can sign up for free in under a minute' mod='payplug'} <a href="https://www.payplug.fr/inscription" class="button btn btn-default">{l s='SIGN UP' mod='payplug'}</a>
+		{l s='You can sign up for free in under a minute' mod='payplug'}
 	</p>
+	<div>
+		 <a href="https://www.payplug.fr/inscription?origin=PrestashopConfig" class="button btn btn-default" target="_blank">{l s='SIGN UP' mod='payplug'}</a>
+	</div>
 
-	<h3>{l s='Step 2 : Set up the module' mod='payplug'}</h3>
+	<h3 class="modal-title">{l s='Step 2 : Set up the module' mod='payplug'}</h3>
 	<p>{l s='To activate payments on your website, you must set up the module with the login information you created when you signed up to PayPlug.' mod='payplug'}</p>
 
 	{if !isset($sandboxMode) || $sandboxMode == ''}
@@ -73,7 +77,7 @@
 			<span class="underline">{l s='Note that payments you collect are not real.' mod='payplug'}</span>
 		</div>
 	{else}
-		<div class="notif alert alert-warning warn">
+		<div class="notif alert alert-success conf">
 			{l s='The module is correctly set up in LIVE mode. You are collecting real payments.' mod='payplug'}
 		</div>
 	{/if}
@@ -102,7 +106,7 @@
 	<form class="form-horizontal" id="sandboxSettings" method="POST" action="{$this_link|escape:'htmlall'}">
 		<p>
 			{l s='Not yet signed up? Enter an email and password on' mod='payplug'}
-			<a target="_blank" href="http://www.payplug.fr/inscription">www.payplug.fr/inscription</a>
+			<a target="_blank" href="http://www.payplug.fr/inscription?origin=PrestashopConfig" target="_blank">www.payplug.fr/inscription</a>
 			{l s=' and return here to set up your module.' mod='payplug'}
 		</p>
 		<div class="form-group">
@@ -164,7 +168,7 @@
 		</p>
 	</form>
 
-
+	<h2>{l s='Debug mod' mod='payplug'}</h2>
 	<p>
 		{if !isset($debugMode) || $debugMode == false}
 			{l s='Debug mode not activated.' mod='payplug'}
@@ -178,12 +182,14 @@
 			$(function(){
 
 				$('.sandboxSettings').click(function(){
-					$('#sandboxSettings').slideToggle('slow');
+					$('#sandboxSettings').slideToggle('fast');
+					$('#liveSettings').slideUp('fast');
 					return false;
 				});
 
 				$('.liveSettings').click(function(){
-					$('#liveSettings').slideToggle('slow');
+					$('#liveSettings').slideToggle('fast');
+					$('#sandboxSettings').slideUp('fast');
 					return false;
 				});
 

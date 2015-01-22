@@ -191,10 +191,16 @@ class InstallPayplug
 
 		// OS Waiting or Waiting test
 		if ($type == 'waiting' || $type == 'waiting_test')
+		{
 			$order_state->color = '#a1f8a1';
+			$order_state->logable = false;
+		}
 		// OS Refund or Refund test
 		else if ($type == 'refund' || $type == 'refund_test')
+		{
 			$order_state->color = '#EA3737';
+			$order_state->logable = false;
+		}
 		// OS Paid or Paid test
 		else if ($type == 'paid' || $type == 'paid_test')
 		{
@@ -212,12 +218,12 @@ class InstallPayplug
 				$order_state->template = 'payment';
 				$order_state->paid = true;
 			}
+			$order_state->logable = true;
 		}
 
 		$order_state->module_name = 'PayPlug';
 		$order_state->hidden      = false;
 		$order_state->delivery    = false;
-		$order_state->logable     = true;
 		$order_state->invoice     = true;
 	}
 
@@ -257,5 +263,27 @@ class InstallPayplug
 			}
 		}
 		return $order_state_name;
+	}
+
+	public function installPayplugLock()
+	{
+
+		$SQL = "
+		CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."payplug_lock` (
+			`id_payplug_lock` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			`id_cart` INT NOT NULL,
+			`date_add` DATETIME NOT NULL,
+			`date_upd` DATETIME NOT NULL
+			) ENGINE="._MYSQL_ENGINE_." ";
+
+		$return = DB::getInstance()->Execute($SQL);
+	}
+
+	public function uninstallPayplugLock()
+	{
+
+		$SQL = " DROP TABLE IF EXISTS `"._DB_PREFIX_."payplug_lock` ";
+
+		$return = DB::getInstance()->Execute($SQL);
 	}
 }
