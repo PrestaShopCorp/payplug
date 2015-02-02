@@ -126,107 +126,126 @@ if (in_array($status, $status_available))
 	{
 		/** Data is an object */
 		$cart = new Cart($data->custom_data);
-		$address = new Address((int)$cart->id_address_invoice);
-		Context::getContext()->country = new Country((int)$address->id_country);
-		Context::getContext()->customer = new Customer((int)$cart->id_customer);
-		Context::getContext()->language = new Language((int)$cart->id_lang);
-		Context::getContext()->currency = new Currency((int)$cart->id_currency);
-
-
-		PayplugLock::check($cart->id);
-
-		$order = new Order();
-		$order_id = $order->getOrderByCartId($cart->id);
-
-
-		/**
-		 * If existing order
-		 */
-		if ($order_id)
+		if (Validation::isLoadedObject($cart))
 		{
+			$address = new Address((int)$cart->id_address_invoice);
 
-			/**
-			 * If status paid
-			 */
-			if ($status == Payplug::PAYMENT_STATUS_PAID)
+			if (Validation::isLoadedObject($address))
 			{
-				$order = new Order($order_id);
-				/** Get the right order status following module configuration (Sandbox or not) */
-				$order_state = Payplug::getOsConfiguration('waiting');
-				$current_state = $order->getCurrentState();
+				Context::getContext()->country = new Country((int)$address->id_country);
+				Context::getContext()->customer = new Customer((int)$cart->id_customer);
+				Context::getContext()->language = new Language((int)$cart->id_lang);
+				Context::getContext()->currency = new Currency((int)$cart->id_currency);
 
-				if ($current_state == $order_state)
+
+				PayplugLock::check($cart->id);
+
+				$order = new Order();
+				$order_id = $order->getOrderByCartId($cart->id);
+
+
+				/**
+				 * If existing order
+				 */
+				if ($order_id)
 				{
-					$order_history = new OrderHistory();
-					/**
-					 * Change order state to payment paid by payplug
-					 */
-					$order_history->id_order = $order_id;
 
-					/** Get the right order status following module configuration (Sandbox or not) */
-					$new_order_state = Payplug::getOsConfiguration('paid');
-					$order_history->changeIdOrderState((int)$new_order_state, $order_id);
-					$order_history->save();
-					if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+					/**
+					 * If status paid
+					 */
+					if ($status == Payplug::PAYMENT_STATUS_PAID)
 					{
-						$order->current_state = $order_history->id_order_state;
-						$order->update();
+						$order = new Order($order_id);
+						/** Get the right order status following module configuration (Sandbox or not) */
+						$order_state = Payplug::getOsConfiguration('waiting');
+						$current_state = $order->getCurrentState();
+
+						if ($current_state == $order_state)
+						{
+							$order_history = new OrderHistory();
+							/**
+							 * Change order state to payment paid by payplug
+							 */
+							$order_history->id_order = $order_id;
+
+							/** Get the right order status following module configuration (Sandbox or not) */
+							$new_order_state = Payplug::getOsConfiguration('paid');
+							$order_history->changeIdOrderState((int)$new_order_state, $order_id);
+							$order_history->save();
+							if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+							{
+								$order->current_state = $order_history->id_order_state;
+								$order->update();
+							}
+						}
+					}
+					/**
+					 * If status refund
+					 */
+					else if ($status == Payplug::PAYMENT_STATUS_REFUND)
+					{
+						$order_history = new OrderHistory();
+						/**
+						 * Change order state to refund by payplug
+						 */
+						$order_history->id_order = $order_id;
+						/** Get the right order status following module configuration (Sandbox or not) */
+						$new_order_state = Payplug::getOsConfiguration('refund');
+						$order_history->changeIdOrderState((int)$new_order_state, $order_id);
+						$order_history->save();
+						if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+						{
+							$order->current_state = $order_history->id_order_state;
+							$order->update();
+						}
 					}
 				}
-			}
-			/**
-			 * If status refund
-			 */
-			else if ($status == Payplug::PAYMENT_STATUS_REFUND)
-			{
-				$order_history = new OrderHistory();
 				/**
-				 * Change order state to refund by payplug
+				 * Else validate order
 				 */
-				$order_history->id_order = $order_id;
-				/** Get the right order status following module configuration (Sandbox or not) */
-				$new_order_state = Payplug::getOsConfiguration('refund');
-				$order_history->changeIdOrderState((int)$new_order_state, $order_id);
-				$order_history->save();
-				if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+				else
 				{
-					$order->current_state = $order_history->id_order_state;
-					$order->update();
+
+					PayplugLock::addLock($cart->id);
+
+					if ($status == Payplug::PAYMENT_STATUS_PAID)
+					{
+						$extra_vars = array();
+						/** Data is an object */
+						$extra_vars['transaction_id'] = $data->id_transaction;
+						$currency = (int)$cart->id_currency;
+						$customer = new Customer((int)$cart->id_customer);
+						/** Get the right order status following module configuration (Sandbox or not) */
+						$order_state = Payplug::getOsConfiguration('paid');
+						$amount = (float)$data->amount / 100;
+						$payplug->validateOrder($cart->id, $order_state, $amount, $payplug->displayName, null, $extra_vars, $currency, false, $customer->secure_key);
+						if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+						{
+							$order_id = Order::getOrderByCartId($cart->id);
+							$order = new Order($order_id);
+							$order_payment = end($order->getOrderPayments());
+							$order_payment->transaction_id = $extra_vars['transaction_id'];
+							$order_payment->update();
+						}
+					}
+
+					PayplugLock::deleteLock($cart->id);
 				}
+				Configuration::updateValue('PAYPLUG_CONFIGURATION_OK', true);
+			}
+			else
+			{
+				echo 'Error : missing or wrong parameters.';
+				header($_SERVER['SERVER_PROTOCOL'].' 400 Missing or wrong parameters for address', true, 400);
+				die;
 			}
 		}
-		/**
-		 * Else validate order
-		 */
 		else
 		{
-
-			PayplugLock::addLock($cart->id);
-
-			if ($status == Payplug::PAYMENT_STATUS_PAID)
-			{
-				$extra_vars = array();
-				/** Data is an object */
-				$extra_vars['transaction_id'] = $data->id_transaction;
-				$currency = (int)$cart->id_currency;
-				$customer = new Customer((int)$cart->id_customer);
-				/** Get the right order status following module configuration (Sandbox or not) */
-				$order_state = Payplug::getOsConfiguration('paid');
-				$amount = (float)$data->amount / 100;
-				$payplug->validateOrder($cart->id, $order_state, $amount, $payplug->displayName, null, $extra_vars, $currency, false, $customer->secure_key);
-				if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
-				{
-					$order_id = Order::getOrderByCartId($cart->id);
-					$order = new Order($order_id);
-					$order_payment = end($order->getOrderPayments());
-					$order_payment->transaction_id = $extra_vars['transaction_id'];
-					$order_payment->update();
-				}
-			}
-
-			PayplugLock::deleteLock($cart->id);
+			echo 'Error : missing or wrong parameters.';
+			header($_SERVER['SERVER_PROTOCOL'].' 400 Missing or wrong parameters for cart', true, 400);
+			die;
 		}
-		Configuration::updateValue('PAYPLUG_CONFIGURATION_OK', true);
 	}
 	else
 	{

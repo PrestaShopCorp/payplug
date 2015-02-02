@@ -52,7 +52,7 @@ class Payplug extends PaymentModule
 		parent::__construct();
 
 		// Backward compatibility
-		if (version_compare(_PS_VERSION_, '1.4', '>'))
+		if (version_compare(_PS_VERSION_, '1.5', '<'))
 			require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');
 
 		// Add warning if prestashop is an older version than 1.4
@@ -117,10 +117,7 @@ class Payplug extends PaymentModule
 				$install = new InstallPayplug();
 				$install->createOrderState();
 
-				if (version_compare(_PS_VERSION_, '1.5', '<'))
-					$this->registerHook('header');
-				else
-					$this->registerHook('displayHeader');
+				$this->registerHook('header');
 
 				$install->installPayplugLock();
 
@@ -181,17 +178,8 @@ class Payplug extends PaymentModule
 		if (version_compare(_PS_VERSION_, '1.4', '<') || !parent::install() || !$this->registerHook('payment') || !$this->registerHook('paymentReturn'))
 			return false;
 
-		// add hook for 1.6
-		if (version_compare(_PS_VERSION_, '1.5', '<'))
-		{
-			if (!$this->registerHook('header'))
-				return false;
-		}
-		else
-		{
-			if (!$this->registerHook('displayHeader'))
-				return false;
-		}
+		if (!$this->registerHook('header'))
+			return false;
 
 		$payplug_install = new InstallPayplug();
 		$payplug_install->createConfig();
@@ -450,14 +438,6 @@ class Payplug extends PaymentModule
 	 * Hook for 1.4
 	 */
 	public function hookHeader()
-	{
-		return $this->hookDisplayHeader();
-	}
-
-	/**
-	 * Hook for >= 1.5
-	 */
-	public function hookDisplayHeader()
 	{
 		if (version_compare(_PS_VERSION_, '1.6', '<'))
 			return;
