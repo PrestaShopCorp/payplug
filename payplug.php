@@ -77,55 +77,6 @@ class Payplug extends PaymentModule
 				Tools::redirectAdmin($url);
 			}
 		}
-
-		if (Module::isInstalled($this->name))
-			$this->upgrade();
-	}
-
-	private function upgrade()
-	{
-		// Configuration name
-		$cfg_name = Tools::strtoupper($this->name.'_version');
-		// Get latest version upgraded
-		$version = Payplug::getConfiguration($cfg_name);
-		// If the first time OR the latest version upgrade is older than this one
-		if ($version === false || version_compare($version, $this->version, '<'))
-		{
-
-			if ($version === false || version_compare($version, '0.9.2', '<='))
-			{
-				// Update OS PayPlug payment
-				if (defined('_PS_OS_PAYMENT_') || Configuration::get('PS_OS_PAYMENT'))
-				{
-					// If is in configuration (since 1.5)
-					if ($os = Configuration::get('PS_OS_PAYMENT'))
-						$os_payment = $os;
-					// If is defined
-					else
-						$os_payment = defined('_PS_OS_PAYMENT_');
-
-					Payplug::updateConfiguration('PAYPLUG_ORDER_STATE_PAID', (int)$os_payment);
-				}
-			}
-			// Add test status && add hook
-			if ($version === false || version_compare($version, '0.9.7', '<'))
-			{
-				Configuration::deleteByName('PAYPLUG_ORDER_STATE_REFUND');
-
-				Payplug::updateConfiguration('PAYPLUG_SANDBOX', '0');
-
-				$install = new InstallPayplug();
-				$install->createOrderState();
-
-				$this->registerHook('header');
-
-				$install->installPayplugLock();
-
-			}
-
-			// Upgrade in DataBase the new version
-			Payplug::updateConfiguration($cfg_name, $this->version, true);
-		}
 	}
 
 	/**

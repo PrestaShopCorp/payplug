@@ -114,7 +114,7 @@ class InstallPayplug
 				{
 					// If is in configuration (since 1.5)
 					if (!($os = Configuration::get($cfg)))
-						$os = defined('_'.$cfg.'_');
+						$os = constant('_'.$cfg.'_');
 
 					// Update configuration
 					Payplug::updateConfiguration($key_config, (int)$os);
