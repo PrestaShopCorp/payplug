@@ -25,11 +25,16 @@
 */
 
 require_once(dirname(__FILE__).'./../../../../config/config.inc.php');
-require_once(dirname(__FILE__).'./../../../../header.php');
-require_once(dirname(__FILE__).'./../../payplug.php');
+/** Call init.php to initialize context */
+require_once(dirname(__FILE__).'/../../../../init.php');
+require_once(dirname(__FILE__).'/../../classes/PayplugLock.php');
 
-/** Backward compatibility */
-require(dirname(__FILE__).'/../../backward_compatibility/backward.php');
+/** Tips to include class of module and backward_compatibility */
+$payplug = Module::getInstanceByName('payplug');
+
+/** Check PS_VERSION */
+if (version_compare(_PS_VERSION_, '1.4', '<'))
+	return;
 
 if (version_compare(_PS_VERSION_, '1.5', '<'))
 {
@@ -59,8 +64,6 @@ if (!$cart->id)
  */
 if (!($ps = Tools::getValue('ps')) || $ps != 1)
 	Payplug::redirectForVersion('index.php?controller=order&step=1');
-
-$payplug = new Payplug();
 if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$payplug->active)
 	Payplug::redirectForVersion('index.php?controller=order&step=1');
 
@@ -76,21 +79,23 @@ if (!Validate::isLoadedObject($customer))
 
 $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
 
-$order = new Order();
-$order_id = $order->getOrderByCartId($cart->id);
+PayplugLock::check($cart->id);
+
+$order_id = Order::getOrderByCartId($cart->id);
+
+
 if (!$order_id)
 {
-	$order_state = Configuration::get('PAYPLUG_ORDER_STATE_WAITING');
+	PayplugLock::addLock($cart->id);
+	/** Get the right order status following module configuration (Sandbox or not) */
+	$order_state = Payplug::getOsConfiguration('waiting');
 	$payplug->validateOrder($cart->id, $order_state, $total, $payplug->displayName, false, array(), (int)$currency->id, false, $customer->secure_key);
-	$order = new Order($payplug->currentOrder);
-}
-else
-{
-	/**
-	 * Ipn has been received
-	 */
-	$order = new Order($order_id);
+	PayplugLock::deleteLock($cart->id);
+
+	$order_id = $payplug->currentOrder;
+	
 }
 
-$link = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order->id.'&key='.$customer->secure_key;
-Payplug::redirectForVersion($link);
+/** Change variable name, because $link is already instanciated */
+$link_redirect = $order_confirmation_url.'id_cart='.$cart->id.'&id_module='.$payplug->id.'&id_order='.$order_id.'&key='.$customer->secure_key;
+Payplug::redirectForVersion($link_redirect);

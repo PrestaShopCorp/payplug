@@ -22,4 +22,13 @@
 *  @license http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PayPlug SAS
 *}
-<p><strong>{l s='This payment method is not available for that amount.' mod='payplug'}</strong></p>
+
+<div class="row">
+	<div class="col-xs-12 col-md-6">
+		<p class="payment_module">
+			<a class="payplug" href="{$this_path|escape}controllers/front/payment.php" title="{l s='Credit card payment' mod='payplug'}">
+				{l s='Credit card checkout' mod='payplug'}
+			</a>
+		</p>
+    </div>
+</div>

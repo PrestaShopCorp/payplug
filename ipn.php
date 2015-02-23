@@ -25,7 +25,22 @@
 */
 
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
-require_once(dirname(__FILE__).'/payplug.php');
+/** Call init.php to initialize context */
+require_once(dirname(__FILE__).'/../../init.php');
+require_once(dirname(__FILE__).'/classes/PayplugLock.php');
+
+/** Tips to include class of module and backward_compatibility */
+$payplug = Module::getInstanceByName('payplug');
+
+/** Check if logs is enable */
+if (Payplug::getConfiguration('PAYPLUG_DEBUG'))
+{
+	/** Get display errors configuration */
+	$display_errors = @ini_get('display_errors');
+	/** Set display errors to true */
+	@ini_set('display_errors', true);
+}
+
 /**
  * Check that payplug module is enabled
  */
@@ -66,23 +81,32 @@ $headers = getallheaders();
  * Avoid problems with lowercase/uppercase transaformations
  */
 $headers = array_change_key_case($headers, CASE_UPPER);
+
 if (!isset($headers['PAYPLUG-SIGNATURE']))
 {
 	header($_SERVER['SERVER_PROTOCOL'].' 403 Signature not provided', true, 403);
 	die;
 }
-$signature = base64_decode($headers['PAYPLUG-SIGNATURE']);
-$body = Tools::file_get_contents('php://input');
-$data = json_decode($body, true);
 
-$status = $data['status'];
-if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATUS_REFUND)
+$signature = base64_decode($headers['PAYPLUG-SIGNATURE']);
+
+$body = Tools::file_get_contents('php://input');
+/** Use the method of "Tools" for compatibility with future and older versions. */
+$data = Tools::jsonDecode($body);
+
+$status = (int)$data->status;
+/** Available status */
+$status_available = array(
+	Payplug::PAYMENT_STATUS_PAID,
+	Payplug::PAYMENT_STATUS_REFUND
+);
+/** if status is an available status */
+if (in_array($status, $status_available))
 {
-	/**
-	 * Check signature
-	 */
 	$public_key = Configuration::get('PAYPLUG_MODULE_PUBLIC_KEY');
 	$check_signature = openssl_verify($body, $signature, $public_key, OPENSSL_ALGO_SHA1);
+	$bool_sign = false;
+
 	if ($check_signature == 1)
 		$bool_sign = true;
 	else if ($check_signature == 0)
@@ -100,84 +124,128 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 
 	if ($data && $bool_sign)
 	{
-		$cart = new Cart($data['custom_data']);
-		$order = new Order();
-		$order_id = $order->getOrderByCartId($cart->id);
-		/**
-		 * If existing order
-		 */
-		if ($order_id)
+		/** Data is an object */
+		$cart = new Cart($data->custom_data);
+		if (Validation::isLoadedObject($cart))
 		{
-			/**
-			 * If status paid
-			 */
-			if ($status == Payplug::PAYMENT_STATUS_PAID)
+			$address = new Address((int)$cart->id_address_invoice);
+
+			if (Validation::isLoadedObject($address))
 			{
-				$order = new Order($order_id);
+				Context::getContext()->country = new Country((int)$address->id_country);
+				Context::getContext()->customer = new Customer((int)$cart->id_customer);
+				Context::getContext()->language = new Language((int)$cart->id_lang);
+				Context::getContext()->currency = new Currency((int)$cart->id_currency);
+
+
+				PayplugLock::check($cart->id);
+
+				$order = new Order();
+				$order_id = $order->getOrderByCartId($cart->id);
+
+
 				/**
-				 * If order state is payment in progress by payplug
+				 * If existing order
 				 */
-				if ($order->getCurrentState() == Configuration::get('PAYPLUG_ORDER_STATE_WAITING'))
+				if ($order_id)
 				{
-					$order_history = new OrderHistory();
+
 					/**
-					 * Change order state to payment paid by payplug
+					 * If status paid
 					 */
-					$order_history->id_order = $order_id;
-					$order_history->changeIdOrderState((int)Configuration::get('PAYPLUG_ORDER_STATE_PAID'), $order_id);
-					$order_history->save();
-					if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+					if ($status == Payplug::PAYMENT_STATUS_PAID)
 					{
-						$order->current_state = $order_history->id_order_state;
-						$order->update();
+						$order = new Order($order_id);
+						/** Get the right order status following module configuration (Sandbox or not) */
+						$order_state = Payplug::getOsConfiguration('waiting');
+						$current_state = $order->getCurrentState();
+
+						if ($current_state == $order_state)
+						{
+							$order_history = new OrderHistory();
+							/**
+							 * Change order state to payment paid by payplug
+							 */
+							$order_history->id_order = $order_id;
+
+							/** Get the right order status following module configuration (Sandbox or not) */
+							$new_order_state = Payplug::getOsConfiguration('paid');
+							$order_history->changeIdOrderState((int)$new_order_state, $order_id);
+							$order_history->save();
+							if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+							{
+								$order->current_state = $order_history->id_order_state;
+								$order->update();
+							}
+						}
+					}
+					/**
+					 * If status refund
+					 */
+					else if ($status == Payplug::PAYMENT_STATUS_REFUND)
+					{
+						$order_history = new OrderHistory();
+						/**
+						 * Change order state to refund by payplug
+						 */
+						$order_history->id_order = $order_id;
+						/** Get the right order status following module configuration (Sandbox or not) */
+						$new_order_state = Payplug::getOsConfiguration('refund');
+						$order_history->changeIdOrderState((int)$new_order_state, $order_id);
+						$order_history->save();
+						if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+						{
+							$order->current_state = $order_history->id_order_state;
+							$order->update();
+						}
 					}
 				}
-			}
-			/**
-			 * If status refund
-			 */
-			else if ($status == Payplug::PAYMENT_STATUS_REFUND)
-			{
-				$order_history = new OrderHistory();
 				/**
-				 * Change order state to refund by payplug
+				 * Else validate order
 				 */
-				$order_history->id_order = $order_id;
-				$order_history->changeIdOrderState((int)Configuration::get('PAYPLUG_ORDER_STATE_REFUND'), $order_id);
-				$order_history->save();
-				if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+				else
 				{
-					$order->current_state = $order_history->id_order_state;
-					$order->update();
+
+					PayplugLock::addLock($cart->id);
+
+					if ($status == Payplug::PAYMENT_STATUS_PAID)
+					{
+						$extra_vars = array();
+						/** Data is an object */
+						$extra_vars['transaction_id'] = $data->id_transaction;
+						$currency = (int)$cart->id_currency;
+						$customer = new Customer((int)$cart->id_customer);
+						/** Get the right order status following module configuration (Sandbox or not) */
+						$order_state = Payplug::getOsConfiguration('paid');
+						$amount = (float)$data->amount / 100;
+						$payplug->validateOrder($cart->id, $order_state, $amount, $payplug->displayName, null, $extra_vars, $currency, false, $customer->secure_key);
+						if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+						{
+							$order_id = Order::getOrderByCartId($cart->id);
+							$order = new Order($order_id);
+							$order_payment = end($order->getOrderPayments());
+							$order_payment->transaction_id = $extra_vars['transaction_id'];
+							$order_payment->update();
+						}
+					}
+
+					PayplugLock::deleteLock($cart->id);
 				}
+				Configuration::updateValue('PAYPLUG_CONFIGURATION_OK', true);
+			}
+			else
+			{
+				echo 'Error : missing or wrong parameters.';
+				header($_SERVER['SERVER_PROTOCOL'].' 400 Missing or wrong parameters for address', true, 400);
+				die;
 			}
 		}
-		/**
-		 * Else validate order
-		 */
 		else
 		{
-			if ($status == Payplug::PAYMENT_STATUS_PAID)
-			{
-				$extra_vars = array();
-				$extra_vars['transaction_id'] = $data['id_transaction'];
-				$currency = (int)$cart->id_currency;
-				$customer = new Customer((int)$cart->id_customer);
-				$payplug = new Payplug();
-				$order_state = Configuration::get('PAYPLUG_ORDER_STATE_PAID');
-				$amount = (float)$data['amount'] / 100;
-				$payplug->validateOrder($cart->id, $order_state, $amount, $payplug->displayName, null, $extra_vars, $currency, false, $customer->secure_key);
-				if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
-				{
-					$order_id = Order::getOrderByCartId($cart->id);
-					$order = new Order($order_id);
-					$order_payment = end($order->getOrderPayments());
-					$order_payment->transaction_id = $extra_vars['transaction_id'];
-					$order_payment->update();
-				}
-			}
+			echo 'Error : missing or wrong parameters.';
+			header($_SERVER['SERVER_PROTOCOL'].' 400 Missing or wrong parameters for cart', true, 400);
+			die;
 		}
-		Configuration::updateValue('PAYPLUG_CONFIGURATION_OK', true);
 	}
 	else
 	{
@@ -186,3 +254,8 @@ if ($status == Payplug::PAYMENT_STATUS_PAID || $status == Payplug::PAYMENT_STATU
 		die;
 	}
 }
+
+/** Restore display errors configuration */
+if (Payplug::getConfiguration('PAYPLUG_DEBUG'))
+	@ini_set('display_errors', $display_errors);
+
