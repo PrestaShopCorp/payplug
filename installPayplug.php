@@ -221,7 +221,7 @@ class InstallPayplug
 			$order_state->logable = true;
 		}
 
-		$order_state->module_name = 'PayPlug';
+		$order_state->module_name = 'payplug';
 		$order_state->hidden      = false;
 		$order_state->delivery    = false;
 		$order_state->invoice     = true;
