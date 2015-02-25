@@ -126,11 +126,11 @@ if (in_array($status, $status_available))
 	{
 		/** Data is an object */
 		$cart = new Cart($data->custom_data);
-		if (Validation::isLoadedObject($cart))
+		if (Validate::isLoadedObject($cart))
 		{
 			$address = new Address((int)$cart->id_address_invoice);
 
-			if (Validation::isLoadedObject($address))
+			if (Validate::isLoadedObject($address))
 			{
 				Context::getContext()->country = new Country((int)$address->id_country);
 				Context::getContext()->customer = new Customer((int)$cart->id_customer);
