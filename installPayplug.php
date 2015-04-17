@@ -250,6 +250,29 @@ class InstallPayplug
 				elseif ($type == 'paid_test')
 					$order_state_name[$language['id_lang']] = 'Paiement effectué [TEST]';
 			}
+			else if (Tools::strtolower($language['iso_code']) == 'es')
+			{
+				if ($type == 'waiting')
+					$order_state_name[$language['id_lang']] = 'Pago en curso [PayPlug]';
+				else if ($type == 'waiting_test')
+					$order_state_name[$language['id_lang']] = 'Pago en curso [TEST]';
+				else if ($type == 'refund_test')
+					$order_state_name[$language['id_lang']] = 'Reembolsado [TEST]';
+				elseif ($type == 'paid_test')
+					$order_state_name[$language['id_lang']] = 'Pago efectuado [TEST]';
+			}
+			
+			else if (Tools::strtolower($language['iso_code']) == 'it')
+			{
+				if ($type == 'waiting')
+					$order_state_name[$language['id_lang']] = 'Pagamento in corso [PayPlug]';
+				else if ($type == 'waiting_test')
+					$order_state_name[$language['id_lang']] = 'Pagamento in corso [TEST]';
+				else if ($type == 'refund_test')
+					$order_state_name[$language['id_lang']] = 'Rimborsato [TEST]';
+				elseif ($type == 'paid_test')
+					$order_state_name[$language['id_lang']] = 'Pagamento effettuato [TEST]';
+			}
 			else
 			{
 				if ($type == 'waiting')
