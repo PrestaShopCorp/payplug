@@ -38,7 +38,7 @@ if (version_compare(_PS_VERSION_, '1.4', '<'))
 
 if (version_compare(_PS_VERSION_, '1.5', '<'))
 {
-	$currency = Currency::getCurrent()->iso_code;
+	$currency = Currency::getCurrent();
 	$order_confirmation_url = 'order-confirmation.php?';
 }
 else
