@@ -57,13 +57,14 @@ class PayplugLock extends ObjectModel {
 	public function __construct($id = false, $id_lang = false)
 	{
 		parent::__construct($id, $id_lang);
-
-        self::$definition = array(
-       		'table'   => $this->table,
-       		'primary' => $this->identifier,
-       		'fields'  => array(
-       			'id_cart' => array('type' => self::TYPE_STRING, 'validate' => 'isInt'),
-       		),
+		
+		if (version_compare(PS_VERSION, 1.5, '>='))
+        		self::$definition = array(
+       				'table'   => $this->table,
+       				'primary' => $this->identifier,
+       				'fields'  => array(
+       				'id_cart' => array('type' => self::TYPE_STRING, 'validate' => 'isInt'),
+       				),
        	);
 	}
 
