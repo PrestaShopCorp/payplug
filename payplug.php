@@ -50,6 +50,9 @@ class Payplug extends PaymentModule
 
 		parent::__construct();
 
+		// For 1.6
+		$this->bootstrap = true;
+
 		// Backward compatibility
 		if (version_compare(_PS_VERSION_, '1.5', '<'))
 			require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');
@@ -192,8 +195,6 @@ class Payplug extends PaymentModule
 		$this->_link .= '&configure='.$this->name.'&token='.Tools::getValue('token').'&tab_module='.$this->tab.'&module_name='.$this->name;
 
 		$display_form = true;
-		// For 1.6
-		$this->bootstrap = true;
 		// Check extensions
 		$curl_exists = extension_loaded('curl');
 		$openssl_exists = extension_loaded('openssl');
