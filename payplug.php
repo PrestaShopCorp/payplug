@@ -44,7 +44,7 @@ class Payplug extends PaymentModule
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
-		$this->version = '0.9.10';
+		$this->version = '1.0.0';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
 
@@ -229,7 +229,6 @@ class Payplug extends PaymentModule
 				curl_setopt($process, CURLOPT_USERPWD, Tools::getValue('payplug_email').':'.Tools::getValue('payplug_password'));
 				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
 				// CURL const are in uppercase
-				curl_setopt($process, CURLOPT_SSLVERSION, defined('CURL_SSLVERSION_TLSV1') ? CURL_SSLVERSION_TLSV1 : 1);
 				curl_setopt($process, CURLOPT_SSL_VERIFYPEER, true);
 				# >= 7.26 to 7.28.1 add a notice message for value 1 will be remove
 				curl_setopt($process, CURLOPT_SSL_VERIFYHOST, (version_compare($curl_version['version'], '7.21', '<') ? true : 2));

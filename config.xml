@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+	<name>payplug</name>
+	<displayName><![CDATA[PayPlug – Simple and secure online payments]]></displayName>
+	<version><![CDATA[1.0.0]]></version>
+	<description><![CDATA[The simplest online payment solution: no setup fees, no fixed fees, and no merchant account required!]]></description>
+	<author><![CDATA[PayPlug]]></author>
+	<tab><![CDATA[payments_gateways]]></tab>
+	<is_configurable>1</is_configurable>
+	<need_instance>0</need_instance>
+</module>
