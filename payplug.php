@@ -44,11 +44,14 @@ class Payplug extends PaymentModule
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.0.0';
+		$this->version = '1.0.1';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
 
 		parent::__construct();
+
+		// For 1.6
+		$this->bootstrap = true;
 
 		// Backward compatibility
 		if (version_compare(_PS_VERSION_, '1.5', '<'))
@@ -192,8 +195,6 @@ class Payplug extends PaymentModule
 		$this->_link .= '&configure='.$this->name.'&token='.Tools::getValue('token').'&tab_module='.$this->tab.'&module_name='.$this->name;
 
 		$display_form = true;
-		// For 1.6
-		$this->bootstrap = true;
 		// Check extensions
 		$curl_exists = extension_loaded('curl');
 		$openssl_exists = extension_loaded('openssl');
