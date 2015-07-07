@@ -1,6 +1,6 @@
 <?php
 /**
-* 2013 - 2014 PayPlug SAS
+* 2013 - 2015 PayPlug SAS
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PayPlug SAS
-*  @copyright 2013 - 2014 PayPlug SAS
+*  @copyright 2013 - 2015 PayPlug SAS
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PayPlug SAS
 */
@@ -93,7 +93,7 @@ if (!$order_id)
 	PayplugLock::deleteLock($cart->id);
 
 	$order_id = $payplug->currentOrder;
-	
+
 }
 
 /** Change variable name, because $link is already instanciated */

@@ -1,6 +1,6 @@
 <?php
 /**
-* 2013 - 2014 PayPlug SAS
+* 2013 - 2015 PayPlug SAS
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PayPlug SAS
-*  @copyright 2013 - 2014 PayPlug SAS
+*  @copyright 2013 - 2015 PayPlug SAS
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PayPlug SAS
 */
@@ -261,7 +261,7 @@ class InstallPayplug
 				elseif ($type == 'paid_test')
 					$order_state_name[$language['id_lang']] = 'Pago efectuado [TEST]';
 			}
-			
+
 			else if (Tools::strtolower($language['iso_code']) == 'it')
 			{
 				if ($type == 'waiting')

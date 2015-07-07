@@ -1,6 +1,6 @@
 <?php
 /**
-* 2013 - 2014 PayPlug SAS
+* 2013 - 2015 PayPlug SAS
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PayPlug SAS
-*  @copyright 2013 - 2014 PayPlug SAS
+*  @copyright 2013 - 2015 PayPlug SAS
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PayPlug SAS
 */
@@ -108,7 +108,7 @@ class PayplugLock extends ObjectModel {
 	 */
 	public static function getInstanceByCart($id_cart)
 	{
-		$query = 'SELECT `id_payplug_lock` 
+		$query = 'SELECT `id_payplug_lock`
 				FROM `'._DB_PREFIX_.'payplug_lock`
 				WHERE `id_cart` = '.(int)$id_cart.' ';
 
@@ -148,7 +148,7 @@ class PayplugLock extends ObjectModel {
 		$start = microtime();
 
 		do
-		{	
+		{
 			// Wait !
 			$current = microtime();
 		} while (($current - $start) < $seconds);
