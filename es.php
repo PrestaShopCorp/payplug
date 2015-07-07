@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array(); 
+$_MODULE = array();
 $_MODULE['<{payplug}prestashop>payplug_5fcaf79f4f4e91a7a3ae186d3f74bf08'] = 'PayPlug no es compatible con las versiones de PrestaShop anteriores a la 1.4. Para conseguir un funcionamiento normal, elimina el directorio /payplug del directorio de tus módulos de PrestaShop.';
 $_MODULE['<{payplug}prestashop>payplug_bbf04ff90578fd1c19834db5809c55f4'] = 'PayPlug: pago en línea sencillo y seguro';
 $_MODULE['<{payplug}prestashop>payplug_8bc3c9271813cb30ad64d959e30ee7e2'] = 'La solución de pago en línea más sencilla: inscripción gratuita, sin necesidad de suscripción y sin contrato de venta a distancia.';

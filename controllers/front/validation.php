@@ -33,49 +33,53 @@ require_once(dirname(__FILE__).'/../../classes/PayplugLock.php');
 $payplug = Module::getInstanceByName('payplug');
 
 /** Check PS_VERSION */
-if (version_compare(_PS_VERSION_, '1.4', '<'))
-	return;
-
-if (version_compare(_PS_VERSION_, '1.5', '<'))
-{
-	$currency = Currency::getCurrent()->iso_code;
-	$order_confirmation_url = 'order-confirmation.php?';
-}
-else
-{
-	$context = Context::getContext();
-	$currency = $context->currency;
-	$order_confirmation_url = 'index.php?controller=order-confirmation&';
+if (version_compare(_PS_VERSION_, '1.4', '<')) {
+    return;
 }
 
-if (!($cart_id = Tools::getValue('cartid')))
-	Payplug::redirectForVersion('index.php?controller=order&step=1');
+if (version_compare(_PS_VERSION_, '1.5', '<')) {
+    $currency = Currency::getCurrent()->iso_code;
+    $order_confirmation_url = 'order-confirmation.php?';
+} else {
+    $context = Context::getContext();
+    $currency = $context->currency;
+    $order_confirmation_url = 'index.php?controller=order-confirmation&';
+}
+
+if (!($cart_id = Tools::getValue('cartid'))) {
+    Payplug::redirectForVersion('index.php?controller=order&step=1');
+}
 
 $cart = new Cart($cart_id);
 
 /**
  * If no current cart, redirect to order page
  */
-if (!$cart->id)
-	Payplug::redirectForVersion('index.php?controller=order&step=1');
+if (!$cart->id) {
+    Payplug::redirectForVersion('index.php?controller=order&step=1');
+}
 
 /**
  * If no GET parameter with payment status code
  */
-if (!($ps = Tools::getValue('ps')) || $ps != 1)
-	Payplug::redirectForVersion('index.php?controller=order&step=1');
-if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$payplug->active)
-	Payplug::redirectForVersion('index.php?controller=order&step=1');
+if (!($ps = Tools::getValue('ps')) || $ps != 1) {
+    Payplug::redirectForVersion('index.php?controller=order&step=1');
+}
+if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$payplug->active) {
+    Payplug::redirectForVersion('index.php?controller=order&step=1');
+}
 
 /**
  * Check that this payment option is still available in case the customer changed his address just before the end of the checkout process
  */
-if (!Payplug::moduleIsActive())
-	die($payplug->l('This payment method is not available.', 'validation'));
+if (!Payplug::moduleIsActive()) {
+    die($payplug->l('This payment method is not available.', 'validation'));
+}
 
 $customer = new Customer((int)$cart->id_customer);
-if (!Validate::isLoadedObject($customer))
-	Payplug::redirectForVersion('index.php?controller=order&step=1');
+if (!Validate::isLoadedObject($customer)) {
+    Payplug::redirectForVersion('index.php?controller=order&step=1');
+}
 
 $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
 
@@ -84,15 +88,14 @@ PayplugLock::check($cart->id);
 $order_id = Order::getOrderByCartId($cart->id);
 
 
-if (!$order_id)
-{
-	PayplugLock::addLock($cart->id);
-	/** Get the right order status following module configuration (Sandbox or not) */
-	$order_state = Payplug::getOsConfiguration('waiting');
-	$payplug->validateOrder($cart->id, $order_state, $total, $payplug->displayName, false, array(), (int)$currency->id, false, $customer->secure_key);
-	PayplugLock::deleteLock($cart->id);
+if (!$order_id) {
+    PayplugLock::addLock($cart->id);
+    /** Get the right order status following module configuration (Sandbox or not) */
+    $order_state = Payplug::getOsConfiguration('waiting');
+    $payplug->validateOrder($cart->id, $order_state, $total, $payplug->displayName, false, array(), (int)$currency->id, false, $customer->secure_key);
+    PayplugLock::deleteLock($cart->id);
 
-	$order_id = $payplug->currentOrder;
+    $order_id = $payplug->currentOrder;
 
 }
 

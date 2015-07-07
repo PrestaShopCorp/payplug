@@ -24,133 +24,133 @@
 *  International Registered Trademark & Property of PayPlug SAS
 */
 
-if (!defined('_PS_VERSION_'))
-	die(header('HTTP/1.0 404 Not Found'));
+if (!defined('_PS_VERSION_')) {
+    die(header('HTTP/1.0 404 Not Found'));
+}
 
 /**
  * Description of totRules
  *
  * @author 202-ecommerce
  */
-class PayplugLock extends ObjectModel {
+class PayplugLock extends ObjectModel
+{
+    const MAX_CHECK_TIME = 5;
 
-	const MAX_CHECK_TIME = 5;
+    public static $definition;
 
-	public static $definition;
+    public $id_payplug_lock;
+    public $id_cart;
+    public $date_add;
+    public $date_upd;
 
-	public $id_payplug_lock;
-	public $id_cart;
-	public $date_add;
-	public $date_upd;
+    protected $table = 'payplug_lock';
+    protected $identifier = 'id_payplug_lock';
+    protected $fieldsRequired = array(
+        'id_cart'
+        );
+    protected $fieldsValidate = array(
+        'id_cart' => 'isInt'
+        );
+    protected $fieldsValidateLang = array(
+        );
 
-	protected $table = 'payplug_lock';
-	protected $identifier = 'id_payplug_lock';
-	protected $fieldsRequired = array(
-		'id_cart'
-		);
-	protected $fieldsValidate = array(
-		'id_cart' => 'isInt'
-		);
-	protected $fieldsValidateLang = array(
-		);
-
-	public function __construct($id = false, $id_lang = false)
-	{
-		parent::__construct($id, $id_lang);
+    public function __construct($id = false, $id_lang = false)
+    {
+        parent::__construct($id, $id_lang);
 
         self::$definition = array(
-       		'table'   => $this->table,
-       		'primary' => $this->identifier,
-       		'fields'  => array(
-       			'id_cart' => array('type' => self::TYPE_STRING, 'validate' => 'isInt'),
-       		),
-       	);
-	}
+            'table'   => $this->table,
+            'primary' => $this->identifier,
+            'fields'  => array(
+                'id_cart' => array('type' => self::TYPE_STRING, 'validate' => 'isInt'),
+            ),
+        );
+    }
 
-	/**
-	 * Check
-	 * @param  integer $id_cart Cart identifier
-	 * @return boolean          if locked
-	 */
-	public static function check($id_cart, $loop_time = 1)
-	{
-		$locked = false;
+    /**
+     * Check
+     * @param  integer $id_cart Cart identifier
+     * @return boolean          if locked
+     */
+    public static function check($id_cart, $loop_time = 1)
+    {
+        $locked = false;
 
-		$time = 0;
+        $time = 0;
 
-		while (($locked = self::exists($id_cart)) && $time < PayplugLock::MAX_CHECK_TIME)
-		{
-			if (function_exists('usleep'))
-				usleep($loop_time * 1000000);
-			else
-				self::usleep($loop_time * 1000);
+        while (($locked = self::exists($id_cart)) && $time < PayplugLock::MAX_CHECK_TIME) {
+            if (function_exists('usleep')) {
+                usleep($loop_time * 1000000);
+            } else {
+                self::usleep($loop_time * 1000);
+            }
 
-			$time++;
-		}
-	}
+            $time++;
+        }
+    }
 
-	/**
-	 * Check if exists
-	 * @param  integer $id_cart Cart identifier
-	 * @return boolean          If exists
-	 */
-	public static function exists($id_cart)
-	{
-		$lock = self::getInstanceByCart((int)$id_cart);
+    /**
+     * Check if exists
+     * @param  integer $id_cart Cart identifier
+     * @return boolean          If exists
+     */
+    public static function exists($id_cart)
+    {
+        $lock = self::getInstanceByCart((int)$id_cart);
 
-		return Validate::isLoadedObject($lock);
-	}
+        return Validate::isLoadedObject($lock);
+    }
 
-	/**
-	 * Set instance of PayplugLock
-	 * @param  integer $id_cart Cart identifier
-	 * @return \PayplugLock     Instance
-	 */
-	public static function getInstanceByCart($id_cart)
-	{
-		$query = 'SELECT `id_payplug_lock`
-				FROM `'._DB_PREFIX_.'payplug_lock`
-				WHERE `id_cart` = '.(int)$id_cart.' ';
+    /**
+     * Set instance of PayplugLock
+     * @param  integer $id_cart Cart identifier
+     * @return \PayplugLock     Instance
+     */
+    public static function getInstanceByCart($id_cart)
+    {
+        $query = 'SELECT `id_payplug_lock`
+                FROM `'._DB_PREFIX_.'payplug_lock`
+                WHERE `id_cart` = '.(int)$id_cart.' ';
 
-		return new PayplugLock((int)Db::getInstance()->getValue($query));
-	}
+        return new PayplugLock((int)Db::getInstance()->getValue($query));
+    }
 
-	/**
-	 * Create lock
-	 * @param  integer $id_cart Cart identifier
-	 * @return boolean          Create successfull
-	 */
-	public static function addLock($id_cart)
-	{
-		$lock = new PayplugLock();
-		$lock->id_cart = (int)$id_cart;
+    /**
+     * Create lock
+     * @param  integer $id_cart Cart identifier
+     * @return boolean          Create successfull
+     */
+    public static function addLock($id_cart)
+    {
+        $lock = new PayplugLock();
+        $lock->id_cart = (int)$id_cart;
 
-		return $lock->save();
-	}
+        return $lock->save();
+    }
 
-	/**
-	 * Delete lock
-	 * @param  integer $id_cart Cart identifier
-	 * @return boolean          Delete successfull
-	 */
-	public static function deleteLock($id_cart)
-	{
-		$lock = self::getInstanceByCart((int)$id_cart);
+    /**
+     * Delete lock
+     * @param  integer $id_cart Cart identifier
+     * @return boolean          Delete successfull
+     */
+    public static function deleteLock($id_cart)
+    {
+        $lock = self::getInstanceByCart((int)$id_cart);
 
-		return $lock->delete();
-	}
+        return $lock->delete();
+    }
 
-	/**
-	 * Sleep time
-	 */
-	private static function usleep($seconds)
-	{
-		$start = microtime();
+    /**
+     * Sleep time
+     */
+    private static function usleep($seconds)
+    {
+        $start = microtime();
 
-		do
-		{
-			// Wait !
-			$current = microtime();
-		} while (($current - $start) < $seconds);
-	}
+        do {
+            // Wait !
+            $current = microtime();
+        } while (($current - $start) < $seconds);
+    }
 }

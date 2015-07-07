@@ -32,8 +32,9 @@ require_once(dirname(__FILE__).'/../../../../init.php');
 $payplug = Module::getInstanceByName('payplug');
 
 /** Check PS_VERSION */
-if (version_compare(_PS_VERSION_, '1.4', '<'))
-	return;
+if (version_compare(_PS_VERSION_, '1.4', '<')) {
+    return;
+}
 
 /**
  * Check currency used
@@ -43,24 +44,25 @@ $cookie = $context->cookie;
 
 $result_currency = array();
 $cart = $context->cart;
-if (version_compare(_PS_VERSION_, '1.5', '<'))
-	$result_currency['iso_code'] = Currency::getCurrent()->iso_code;
-else
-{
-	$currency = $cart->id_currency;
-	$result_currency = Currency::getCurrency($currency);
+if (version_compare(_PS_VERSION_, '1.5', '<')) {
+    $result_currency['iso_code'] = Currency::getCurrent()->iso_code;
+} else {
+    $currency = $cart->id_currency;
+    $result_currency = Currency::getCurrency($currency);
 }
 
 $supported_currencies = explode(';', Configuration::get('PAYPLUG_MODULE_CURRENCIES'));
-if (!in_array($result_currency['iso_code'], $supported_currencies))
-	return false;
+if (!in_array($result_currency['iso_code'], $supported_currencies)) {
+    return false;
+}
 
 /**
  *  Check amount
  */
 $amount = $context->cart->getOrderTotal(true, Cart::BOTH) * 100;
-if ($amount < Configuration::get('PAYPLUG_MODULE_MIN_AMOUNT') * 100 || $amount > Configuration::get('PAYPLUG_MODULE_MAX_AMOUNT') * 100)
-	return false;
+if ($amount < Configuration::get('PAYPLUG_MODULE_MIN_AMOUNT') * 100 || $amount > Configuration::get('PAYPLUG_MODULE_MAX_AMOUNT') * 100) {
+    return false;
+}
 
 /**
  *  Parameters for payment url
@@ -68,24 +70,25 @@ if ($amount < Configuration::get('PAYPLUG_MODULE_MIN_AMOUNT') * 100 || $amount >
 $url_payment = Configuration::get('PAYPLUG_MODULE_URL');
 $base_return_url = _PS_BASE_URL_.__PS_BASE_URI__.'modules/payplug/controllers/front/validation.php';
 
-if (version_compare(_PS_VERSION_, '1.5', '<'))
-	$customer = new Customer ($context->cookie->id_customer);
-else
-	$customer = $context->customer;
+if (version_compare(_PS_VERSION_, '1.5', '<')) {
+    $customer = new Customer($context->cookie->id_customer);
+} else {
+    $customer = $context->customer;
+}
 
 $params = array('amount'=>$amount,
-				'custom_data'=>$context->cart->id,
-				'origin'=>'Prestashop '._PS_VERSION_.' module '.$payplug->version,
-				'currency'=>$result_currency['iso_code'],
-				'ipn_url'=>_PS_BASE_URL_.__PS_BASE_URI__.'modules/payplug/ipn.php',
-				'cancel_url'=>$base_return_url.'?ps=2&cartid='.$context->cart->id,
-				'return_url'=>$base_return_url.'?ps=1&cartid='.$context->cart->id,
-				'email'=>$customer->email,
-				'firstname'=>$customer->firstname,
-				'lastname'=>$customer->lastname,
-				'order'=>$context->cart->id,
-				'customer'=>$customer->id
-				);
+                'custom_data'=>$context->cart->id,
+                'origin'=>'Prestashop '._PS_VERSION_.' module '.$payplug->version,
+                'currency'=>$result_currency['iso_code'],
+                'ipn_url'=>_PS_BASE_URL_.__PS_BASE_URI__.'modules/payplug/ipn.php',
+                'cancel_url'=>$base_return_url.'?ps=2&cartid='.$context->cart->id,
+                'return_url'=>$base_return_url.'?ps=1&cartid='.$context->cart->id,
+                'email'=>$customer->email,
+                'firstname'=>$customer->firstname,
+                'lastname'=>$customer->lastname,
+                'order'=>$context->cart->id,
+                'customer'=>$customer->id
+                );
 $url_params = http_build_query($params);
 $privatekey = Configuration::get('PAYPLUG_MODULE_KEY');
 openssl_sign($url_params, $signature, $privatekey, $signature_alg = OPENSSL_ALGO_SHA1);

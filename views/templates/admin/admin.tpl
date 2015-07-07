@@ -24,9 +24,9 @@
 *}
 
 <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300" rel="stylesheet" type="text/css">
-<link rel="stylesheet" type="text/css" href="{$this_path|escape:'htmlall'}css/admin.css">
+<link rel="stylesheet" type="text/css" href="{$this_path|escape:'htmlall'}views/css/admin.css">
 <div id="payplug_admin">
-	<img src="{$this_path|escape:'htmlall'}img/logoPayPlug.png" alt="logoPayPlug">
+	<img src="{$this_path|escape:'htmlall'}views/img/logoPayPlug.png" alt="logoPayPlug">
 	<h1>{l s='The simplest online payment solution' mod='payplug'}</h1>
 	<p>{l s='PayPlug provides small e-merchants all the benefits of a full online payment solution.' mod='payplug'}</p>
 
