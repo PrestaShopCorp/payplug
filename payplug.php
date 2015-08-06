@@ -44,7 +44,7 @@ class Payplug extends PaymentModule
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.0.1';
+		$this->version = '1.1.0';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
 
@@ -178,6 +178,18 @@ class Payplug extends PaymentModule
 			Tools::redirectLink($link);
 		else
 			Tools::redirect($link);
+	}
+
+	public static function checkAmountPaidIsCorrect($amount, $order)
+	{
+		$order_amount = $order->total_paid;
+
+		if($amount != 0)
+			return abs($order_amount - $amount) / $amount < 0.00001;
+		else if($order_amount != 0)
+			return abs($amount - $order_amount) / $order_amount < 0.00001;
+		else
+			return true;
 	}
 
 	public function getContent()
