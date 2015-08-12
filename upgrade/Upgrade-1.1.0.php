@@ -11,7 +11,7 @@
 				$os_payment = $os;
 			// If is defined
 			else
-				$os_payment = defined('_PS_OS_ERROR_');
+				$os_payment = constant('_PS_OS_ERROR_');
 
 			Payplug::updateConfiguration('PAYPLUG_ORDER_STATE_ERROR', (int)$os_payment);
 		}
