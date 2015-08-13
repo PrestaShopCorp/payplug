@@ -36,35 +36,42 @@ class PayplugLock extends ObjectModel {
 
 	const MAX_CHECK_TIME = 5;
 
-	public static $definition;
+	public static $definition = array(
+       				'table'   => 'payplug_lock',
+       				'primary' => 'id_payplug_lock',
+       				'fields'  => array(
+       					'id_cart' => array('type' => 3, 'validate' => 'isInt', 'required' => true),
+       				)
+       				);
 
 	public $id_payplug_lock;
 	public $id_cart;
 	public $date_add;
 	public $date_upd;
 
-	protected $table = 'payplug_lock';
-	protected $identifier = 'id_payplug_lock';
-	protected $fieldsRequired = array(
-		'id_cart'
-		);
-	protected $fieldsValidate = array(
-		'id_cart' => 'isInt'
-		);
-	protected $fieldsValidateLang = array(
-		);
+	protected $table;
+	protected $identifier;
+	protected $fieldsRequired = array();
+	protected $fieldsValidate = array();
+	protected $fieldsValidateLang = array();
 
 	public function __construct($id = false, $id_lang = false)
 	{
+		
+		if (version_compare(PS_VERSION, 1.4, '<'))
+		{
+			$this->table      = self::$definition['table'];
+			$this->identifier = self::$definition['primary'];
+			
+			foreach (self::$definition['fields'] as $key => $field)
+			{
+				if (isset($field['required']) && $field['required'])
+					$this->fieldsRequired[] = $key;
+				
+				$this->fieldsValidate[$key] = $field['validate'];
+			}
+		}
 		parent::__construct($id, $id_lang);
-
-        self::$definition = array(
-       		'table'   => $this->table,
-       		'primary' => $this->identifier,
-       		'fields'  => array(
-       			'id_cart' => array('type' => self::TYPE_STRING, 'validate' => 'isInt'),
-       		),
-       	);
 	}
 
 	/**

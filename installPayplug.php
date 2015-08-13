@@ -128,6 +128,14 @@ class InstallPayplug
 			$this->createOrderStateSpecifc($key, true);
 		}
 
+		// If is in configuration (since 1.5)
+		if ($os = Configuration::get('PS_OS_ERROR'))
+			$os_payment = $os;
+		// If is defined
+		else
+			$os_payment = defined('_PS_OS_ERROR_');
+		Payplug::updateConfiguration('PAYPLUG_ORDER_STATE_ERROR', (int)$os_payment);
+
 	}
 
 	/**
