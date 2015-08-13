@@ -2,7 +2,7 @@
 <module>
 	<name>payplug</name>
 	<displayName><![CDATA[PayPlug – Simple and secure online payments]]></displayName>
-	<version><![CDATA[1.0.1]]></version>
+	<version><![CDATA[1.1.0]]></version>
 	<description><![CDATA[The simplest online payment solution: no setup fees, no fixed fees, and no merchant account required!]]></description>
 	<author><![CDATA[PayPlug]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>
