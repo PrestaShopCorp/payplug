@@ -162,21 +162,38 @@ if (in_array($status, $status_available))
 
 						if ($current_state == $order_state)
 						{
-							$order_history = new OrderHistory();
+							/** Get the right order status following module configuration (Sandbox or not) */
+							if(PayPlug::checkAmountPaidIsCorrect($data->amount /100,$order))
+								$new_order_state = Payplug::getOsConfiguration('paid');
+							else
+								$new_order_state = Payplug::getConfiguration('PAYPLUG_ORDER_STATE_ERROR');
+
 							/**
 							 * Change order state to payment paid by payplug
 							 */
+							$order_history = new OrderHistory();
 							$order_history->id_order = $order_id;
-
-							/** Get the right order status following module configuration (Sandbox or not) */
-							$new_order_state = Payplug::getOsConfiguration('paid');
 							$order_history->changeIdOrderState((int)$new_order_state, $order_id);
 							$order_history->save();
-							if (version_compare(_PS_VERSION_, '1.5', '>') && version_compare(_PS_VERSION_, '1.5.2', '<'))
+
+							
+
+							if($new_order_state == Payplug::getConfiguration('PAYPLUG_ORDER_STATE_ERROR'))
 							{
-								$order->current_state = $order_history->id_order_state;
-								$order->update();
+								//Add message to warn user
+								$message = new Message();
+								$message->message = $payplug->l('The amount collected by PayPlug is not the same as the total value of the order');
+								$message->id_order = $order->id;
+								$message->id_cart = $order->id_cart;
+								$message->private = true;
+								$message->save();
 							}
+
+							//Ajout de la reférence de paiement
+							if(count($order->getOrderPayments()) == 0)
+								$order->addOrderPayment($data->amount / 100);
+							$order->current_state = $order_history->id_order_state;
+							$order->update();
 						}
 					}
 					/**
