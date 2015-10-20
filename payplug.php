@@ -44,7 +44,7 @@ class Payplug extends PaymentModule
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.1.0';
+		$this->version = '1.1.1';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
 
