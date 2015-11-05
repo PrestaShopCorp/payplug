@@ -66,7 +66,12 @@ if ($amount < Configuration::get('PAYPLUG_MODULE_MIN_AMOUNT') * 100 || $amount >
  *  Parameters for payment url
  */
 $url_payment = Configuration::get('PAYPLUG_MODULE_URL');
-$base_return_url = _PS_BASE_URL_.__PS_BASE_URI__.'modules/payplug/controllers/front/validation.php';
+if(Tools::getShopProtocol() == 'https://')
+    $baseurl = _PS_BASE_URL_SSL_;
+else
+    $baseurl = _PS_BASE_URL_;
+
+$base_return_url = $baseurl.__PS_BASE_URI__.'modules/payplug/controllers/front/validation.php';
 
 if (version_compare(_PS_VERSION_, '1.5', '<'))
 	$customer = new Customer ($context->cookie->id_customer);
@@ -77,7 +82,7 @@ $params = array('amount'=>$amount,
 				'custom_data'=>$context->cart->id,
 				'origin'=>'Prestashop '._PS_VERSION_.' module '.$payplug->version,
 				'currency'=>$result_currency['iso_code'],
-				'ipn_url'=>_PS_BASE_URL_.__PS_BASE_URI__.'modules/payplug/ipn.php',
+				'ipn_url'=>$baseurl.__PS_BASE_URI__.'modules/payplug/ipn.php',
 				'cancel_url'=>$base_return_url.'?ps=2&cartid='.$context->cart->id,
 				'return_url'=>$base_return_url.'?ps=1&cartid='.$context->cart->id,
 				'email'=>$customer->email,
