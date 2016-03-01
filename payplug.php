@@ -28,6 +28,7 @@ if (!defined('_PS_VERSION_'))
 	exit;
 
 require_once(_PS_MODULE_DIR_.'/payplug/installPayplug.php');
+include_once(_PS_MODULE_DIR_.'payplug/classes/MyLogPHP.class.php');
 
 class Payplug extends PaymentModule
 {
@@ -44,7 +45,7 @@ class Payplug extends PaymentModule
 	{
 		$this->name = 'payplug';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.1.1';
+		$this->version = '1.1.3';
 		$this->author = 'PayPlug';
 		$this->module_key = '1ee28a8fb5e555e274bd8c2e1c45e31a';
 
@@ -128,28 +129,46 @@ class Payplug extends PaymentModule
 
 	public function install()
 	{
+		$log = new MyLogPHP(_PS_MODULE_DIR_.'payplug/log/install-log.csv');
+		$log->info('PayPlug module install');
+		
 		if (version_compare(_PS_VERSION_, '1.4', '<') || !parent::install() || !$this->registerHook('payment') || !$this->registerHook('paymentReturn'))
 			return false;
+		$log->info('_PS_VERSION_ > 1.4 / parent install OK / hook payment OK / hook paymentReturn OK');
+
 
 		if (!$this->registerHook('header'))
 			return false;
+		$log->info('hook header OK');
 
 		$payplug_install = new InstallPayplug();
 		$payplug_install->createConfig();
+		$log->info('createConfig OK');
 		$payplug_install->createOrderState();
-
+		$log->info('createOrderState OK');
 		$payplug_install->installPayplugLock();
-
+		$log->info('installPayplugLock OK');
+		
+		$log->info('PayPlug module install COMPLETED');
 		return true;
 	}
 
 	public function uninstall()
 	{
+		$log = new MyLogPHP(_PS_MODULE_DIR_.'payplug/log/install-log.csv');
+		$log->info('PayPlug module uninstall');
+		
 		$payplug_install = new InstallPayplug();
 		$payplug_install->deleteConfig();
+		$log->info('deleteConfig OK');
 		$payplug_install->uninstallPayplugLock();
-
-		return parent::uninstall();
+		$log->info('uninstallPayplugLock OK');
+		
+		if (parent::uninstall()) {
+			$log->info('PayPlug module uninstall COMPLETED');
+			return true;
+		}
+		
 	}
 
 	public static function moduleIsActive()
@@ -194,6 +213,7 @@ class Payplug extends PaymentModule
 
 	public function getContent()
 	{
+		
 		// if ps version is not available
 		if (version_compare(_PS_VERSION_, '1.4', '<'))
 			return;
